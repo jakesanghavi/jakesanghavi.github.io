@@ -1,3 +1,13 @@
+/* Universal reset to prevent unintended whitespace */
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+}
 
 /* Style the links inside the navigation bar */
 .topnav a {
