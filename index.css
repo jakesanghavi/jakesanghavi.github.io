@@ -16,19 +16,35 @@ html {
 
 /* Style the links inside the navigation bar */
 .topnav a {
-float: left;
-color: #f2f2f2;
-text-align: center;
-padding: 14px 16px;
-text-decoration: none;
-font-size: 18px;
-font-family: "Goudy Old Style";
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 18px;
+  font-family: "Goudy Old Style";
 }
 
 /* Change the color of links on hover */
 .topnav a:hover {
-background-color: #ddd;
-color: black;
+  background-color: #ddd;
+  color: black;
+}
+
+.navbar {
+  position: fixed;
+  width: 100%;
+  background-color: #C8A2C8;
+}
+
+.navbar a {
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 18px;
+  font-family: "Goudy Old Style";
 }
 
 /* Styles and places footer in the correct location. */
