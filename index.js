@@ -12,12 +12,19 @@ $(document).ready(function(){
             } else {
                 $nav.fadeOut(750);
             }
-            if ($(this).scrollTop() > 736 && $(this).scrollTop() < 1446){
+            if ($(this).scrollTop() > 736 && $(this).scrollTop() < 1436){
+                $('.navbar .projects').removeClass('active');
                 $('.navbar .contact').removeClass('active');
                 $('.navbar .about').addClass('active');
             }
-            else if ($(this).scrollTop() > 1535) {
+            else if ($(this).scrollTop() > 1536 && $(this).scrollTop() < 2236) {
                 $('.navbar .about').removeClass('active');
+                $('.navbar .contact').removeClass('active');
+                $('.navbar .projects').addClass('active');
+            }
+            else if ($(this).scrollTop() > 2336) {
+                $('.navbar .about').removeClass('active');
+                $('.navbar .projects').removeClass('active');
                 $('.navbar .contact').addClass('active');
             }
         });
