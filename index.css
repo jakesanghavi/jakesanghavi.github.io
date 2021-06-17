@@ -35,6 +35,7 @@ html {
   position: fixed;
   width: 100%;
   background-color: #C8A2C8;
+  z-index: 2;
 }
 
 .navbar a {
@@ -78,4 +79,40 @@ padding-bottom: 20px;
 .main-text {
   text-align: center;
   color: white;
+}
+
+.main-section img {
+  border-radius: 16px;
+  position: relative;
+  left: 75px;
+  top: 50px;
+  margin-right: 50px;
+  z-index: 1;
+}
+
+.former {
+  display: inline-block;
+  vertical-align: top;
+  position: relative;
+  top: 80px;
+  left: 105px;
+  margin-right: 145px;
+  color: white;
+  font-size: 30px;
+  font-family: "Goudy Old Style";
+  text-align: center;
+}
+
+.latter {
+  display: inline-block;
+  float: right;
+  vertical-align: top;
+  position: relative;
+  top: 80px;
+  right: 125px;
+  margin-left: 165px;
+  color: white;
+  font-size: 30px;
+  font-family: "Goudy Old Style";
+  text-align: center;
 }
