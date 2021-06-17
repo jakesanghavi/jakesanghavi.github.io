@@ -61,8 +61,33 @@ html {
   color: white;
 }
 
+.self-image {
+  position: relative;
+  left: 75px;
+  top: 100px;
+  border-radius: 16px;
+}
+
+.write-up {
+  color: white;
+  position: relative;
+  left: 575px;
+  bottom: 300px;
+  word-wrap: break-word;
+  max-width: 600px;
+  font-size: 20px;
+  font-family: "Goudy Old Style";
+  margin-bottom: 35px;
+}
+
+br {
+  display: block; /* makes it have a width */
+  content: ""; /* clears default height */
+  margin-top: 0; /* change this to whatever height you want it */
+}
+
 /* Styles and positions the images in the projects section */
-.main-section img {
+.thumbnails {
   border-radius: 16px;
   position: relative;
   left: 75px;
@@ -120,6 +145,6 @@ html {
 
 /* Styles links at bottom to look nicer */
 .bottom-links {
-padding-top: 10px;
-padding-bottom: 20px;
+  padding-top: 10px;
+  padding-bottom: 20px;
 }
