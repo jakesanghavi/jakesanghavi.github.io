@@ -29,23 +29,4 @@ $(document).ready(function(){
             }
         });
     });
-
-    // $(function () {
-    //     $(window).scroll(function () {
-    //         var thing = $("div.items").not(":hidden").prop("id");
-    //         $('.navbar a').filter(function () {
-    //             console.log(location.href);
-    //             return this.href === location.href;
-    //         }).addClass('active');
-    //     });
-    // });
-    // $(function () {
-    //     $(window).scroll(function () {
-    //         var divID = $("div.main-section").filter(":visible").attr("id");
-    //         console.log(String(divID))
-    //         $('.navbar .active').removeClass('active');
-    //         // $('#' + divID).addClass('active');
-    //     });
-    // });
-
 });
