@@ -12,13 +12,33 @@ $(document).ready(function(){
             } else {
                 $nav.fadeOut(750);
             }
+            if ($(this).scrollTop() > 736 && $(this).scrollTop() < 1446){
+                $('.navbar .contact').removeClass('active');
+                $('.navbar .about').addClass('active');
+            }
+            else if ($(this).scrollTop() > 1535) {
+                $('.navbar .about').removeClass('active');
+                $('.navbar .contact').addClass('active');
+            }
         });
     });
 
-    $(function () {
-        $('.navbar a').filter(function () {
-            return this.href === location.href;
-        }).addClass('active');
-    });
+    // $(function () {
+    //     $(window).scroll(function () {
+    //         var thing = $("div.items").not(":hidden").prop("id");
+    //         $('.navbar a').filter(function () {
+    //             console.log(location.href);
+    //             return this.href === location.href;
+    //         }).addClass('active');
+    //     });
+    // });
+    // $(function () {
+    //     $(window).scroll(function () {
+    //         var divID = $("div.main-section").filter(":visible").attr("id");
+    //         console.log(String(divID))
+    //         $('.navbar .active').removeClass('active');
+    //         // $('#' + divID).addClass('active');
+    //     });
+    // });
 
 });

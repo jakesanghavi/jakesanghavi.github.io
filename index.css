@@ -47,6 +47,10 @@ html {
   font-family: "Goudy Old Style";
 }
 
+.navbar .active {
+  color: red;
+}
+
 /* Styles and places footer in the correct location. */
 .footer {
   /* position: fixed; */
