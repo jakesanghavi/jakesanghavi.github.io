@@ -1,0 +1,130 @@
+/* Universal reset to prevent unintended whitespace */
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    background: transparent;
+  }
+  
+  /* Set scrolling behavior properly */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  html,body{
+    margin: 0;
+  }
+  
+  /* Style the links inside the navigation bar */
+  .topnav a {
+    float: left;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 1.3% 0.83%;
+    text-decoration: none;
+    font-size: 18px;
+    font-family: "Goudy Old Style";
+  }
+  
+  /* Change the color of links on hover */
+.topnav a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+  /* Properly aligns and colors the homepage main text */
+.main-text {
+    text-align: center;
+    color: white;
+}
+
+.self-image {
+  position: relative;
+  left: 4vw;
+  top: 23%;
+  border-radius: 16px;
+}
+
+.write-up {
+    color: white;
+    position: relative;
+    left: 35%;
+    bottom: 32%;
+    word-wrap: break-word;
+    max-width: 40%;
+    font-size: 20px;
+    font-family: "Goudy Old Style";
+    margin-bottom: 3.25%;
+}
+
+br {
+  display: block; /* makes it have a width */
+  content: ""; /* clears default height */
+  margin-top: 0; /* change this to whatever height you want it */
+}
+
+/* Styles and positions the images in the projects section */
+.thumbnails {
+  border-radius: 16px;
+  position: relative;
+  left: 4vw;
+  top: 50px;
+  margin-right: 50px;
+  z-index: 1;
+}
+
+/* Styles the first two images in projects. */
+.former {
+  display: inline-block;
+  vertical-align: top;
+  position: relative;
+  top: 80px;
+  left: 105px;
+  margin-right: 145px;
+  color: white;
+  font-size: 30px;
+  font-family: "Goudy Old Style";
+  text-align: center;
+}
+
+/* Styles the second two images in projects. */
+.latter {
+  display: inline-block;
+  /*If you get a warning here, ignore it. Both display: and float: are required. */
+  float: right;
+  vertical-align: top;
+  position: relative;
+  top: 80px;
+  right: 125px;
+  margin-left: 165px;
+  color: white;
+  font-size: 30px;
+  font-family: "Goudy Old Style";
+  text-align: center;
+}
+
+/* Styles and places footer in the correct location. */
+.footer {
+  /* position: fixed; */
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: black;
+  color: white;
+  text-align: center;
+  padding-top: 10px;
+}
+
+/* Colors links in footer white */
+.white-links {
+  color: white;
+}
+
+/* Styles links at bottom to look nicer */
+.bottom-links {
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
