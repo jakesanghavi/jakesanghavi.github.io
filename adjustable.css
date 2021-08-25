@@ -8,6 +8,13 @@
     vertical-align: baseline;
     background: transparent;
   }
+
+  html,body
+{
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden; 
+}
   
   /* Set scrolling behavior properly */
   html {
@@ -80,7 +87,7 @@ br {
   margin-top: 0; /* change this to whatever height you want it */
 }
 
-p {
+.summary {
   margin-bottom: 1vw;
   max-width: 45%;
   vertical-align: middle;
