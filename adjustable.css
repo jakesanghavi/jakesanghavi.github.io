@@ -41,29 +41,53 @@
     color: white;
 }
 
+.aligner {
+  display: table;
+  margin-top: 4vw;
+}
+
 .self-image {
   position: relative;
   left: 4vw;
-  top: 23%;
   border-radius: 16px;
+  margin-top: 6vw;  
 }
+
+/* #about {
+  vertical-align: middle;
+  align-items: center;
+  display: flex;
+} */
 
 .write-up {
     color: white;
     position: relative;
-    left: 35%;
-    bottom: 32%;
+    /* display: inline-block; */
+    /* margin-top: 5vw; */
+    left: 30%;
     word-wrap: break-word;
-    max-width: 40%;
-    font-size: 20px;
+    max-width: 45%;
+    font-size: 150%;
     font-family: "Goudy Old Style";
     margin-bottom: 3.25%;
+    vertical-align: middle;
+    display: table-cell;
 }
 
 br {
   display: block; /* makes it have a width */
   content: ""; /* clears default height */
   margin-top: 0; /* change this to whatever height you want it */
+}
+
+p {
+  margin-bottom: 1vw;
+  max-width: 45%;
+  vertical-align: middle;
+}
+
+span {
+  top: 10%;
 }
 
 /* Styles and positions the images in the projects section */
@@ -135,13 +159,16 @@ figure {
   display: inline-block;
   /* border: 1px dotted gray; */
   margin: 2vw; /* adjust as needed */
+  margin-top: 4vw;
 }
 figure img {
   vertical-align: top;
-  left: 7vw;
+  left: 0vw;
   border-radius: 16px;
-  height: 18vw;
-  width: 18vw;
+  /* height: 18vw;
+  width: 18vw; */
+  position: relative;
+  z-index: 1;
 }
 figure figcaption a {
   /* border: 1px dotted blue; */
