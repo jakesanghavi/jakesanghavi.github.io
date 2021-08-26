@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <title>Jake Sanghavi</title>
-        <link rel="stylesheet" href="index.css">
+        <link rel="stylesheet" href="adjustable.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <script src="jquery-3.6.0.min.js"></script>
         <script type="text/javascript" src="index.js"></script>
@@ -13,65 +13,111 @@
             <a href="#about">About</a>
             <a href="#projects">Projects</a>
             <a href="#contact">Contact</a>
-            <a href="adjustable.html">Mobile test</a>
-        </div>
-
-        <div class="navbar">
-            <a class='home' href="#home">Home</a>
-            <a class='about' href="#about">About</a>
-            <a class='projects' href="#projects">Projects</a>
-            <a class='contact' href="#contact">Contact</a>
         </div>
 
         <div id="home" class="main-section" style="background-image: url('moonlightfishing.jpg');
-        background-size: cover; height: 710px; padding-top:80px;">
+        background-size: cover; height: 92vh; padding-top: 7vh;">
             <ul class="main-text">
                 <li style="font-size: 34px; font-family: Rockwell;">Jake Sanghavi</li>
             </ul>
         </div>
 
-        <div id="about" class="main-section" style="height: 710px; padding-top:80px; background-color: black">
+        <div id="about" class="main-section" style="height: 92vh; padding-top: 7vh; background-color: black">
             <ul class="main-text">
                 <li style="font-size: 34px; font-family: Rockwell;">About Me</li>
             </ul>
-            <img src="me.jpg" width="400" class="self-image"></img>
-            <p class="write-up">
-                I am a sophomore student at Case Western Reserve University from Brookline, MA. I am planning on majoring in Data Science
-                and minoring in both Astronomy and Economics. My main interests lie in astrophysics and sports analytics, and I
-                have worked on projects in each of these fields. I am particularly interested in theoretical physics and predictive
-                sports modeling.
-            </p>
-            <p class="write-up">
-                Most of the work I do is in Python. The packages that I mostly commonly use are: Matplotlib, NumPy, pandas, and seaborn.
-                I have also used Cartopy, OpenCV, PIL, and TensorFlow for various projects. Other than Python, I have some
-                knowledge in Java, HTML/CSS, and JavaScript. I have also briefly used R, jQuery and Julia.
-            </p>
-            <p class="write-up">
-                If you would like more information, you can contact me <a href="mailto:jms625@case.edu">@jms625@case.edu</a> to request a resume or transcript.
-            </p>
+            <div class="aligner">
+                <img src="me.jpg" width="400%" class="self-image"></img>
+                <span class="write-up">
+                    <p class="summary">
+                        I am a sophomore student at Case Western Reserve University from Brookline, MA. I am planning on majoring in Data Science
+                        and minoring in both Astronomy and Economics. My main interests lie in astrophysics and sports analytics, and I
+                        have worked on projects in each of these fields. I am particularly interested in theoretical physics and predictive
+                        sports modeling.
+                    </p>
+                    <p class="summary">
+                        Most of the work I do is in Python. The packages that I mostly commonly use are: Matplotlib, NumPy, pandas, and seaborn.
+                        I have also used Cartopy, OpenCV, PIL, and TensorFlow for various projects. Other than Python, I have some
+                        knowledge in Java, HTML/CSS (plus modest experience with JavaScript and jQuery), and I have briefly used R.
+                    </p>
+                    <p class="summary">
+                        If you would like more information, you can contact me <a href="mailto:jms625@case.edu">@jms625@case.edu</a> to request a resume or a transcript.
+                    </p>
+                </span>
+            </div>
         </div>
 
-        <div id="projects" class="main-section" style="height: 710px; padding-top:80px; background-color: #0f2462">
+        <div id="projects" class="main-section" style="height: 92vh; padding-top:7vh; background-color: #0f2462">
             <ul class="main-text">
                 <li style="font-size: 34px; font-family: Rockwell;">Project Links</li>
             </ul>
-            <a href="https://github.com/FGCUStellarResearch/Gyrochronology" target="blank"><img class="thumbnails" src="sun.jpg"></img></a>
-            <a href="https://github.com/jakesanghavi/NFL_Stats" target="blank"><img class="thumbnails" src="NFL_logo.jpg"></img></a>
-            <a href="https://github.com/jakesanghavi/NBA_Stats" target="blank"><img class="thumbnails" src="NBA.png"></img></a>
-            <a href="https://github.com/jakesanghavi/COVID-19_Map" target="blank"><img class="thumbnails" src="coronavirus.png"></img></a>
+            <figure style="margin-left: 4vw;">
+                <a href="https://github.com/FGCUStellarResearch/Gyrochronology" target="blank"><img src="sun.jpg"></img></a>
+                <figcaption>
+                    <a href="https://github.com/FGCUStellarResearch/Gyrochronology" target="blank"><li>Astronomy Research</br></br>(Gyrochronology)</li></a>
+                </figcaption>
+            </figure>
+            <figure>
+                <a href="https://github.com/jakesanghavi/NFL_Stats" target="blank"><img src="NFL_logo.jpg"></img></a>
+                <figcaption>
+                    <a href=https://github.com/jakesanghavi/NFL_Stats" target="blank"><li>NFL Scraping</br></br>and Analytics</li></a>
+                </figcaption>
+            </figure>
+            <figure>
+                <a href="https://github.com/jakesanghavi/NBA_Stats" target="blank"><img src="NBA.png"></img></a>
+                <figcaption>
+                    <a href="https://github.com/jakesanghavi/COVID-19_Map" target="blank"><li>USA Coronavirus</br></br>Map</li></a>
+                </figcaption>
+            </figure>
+            <figure>
+                <a href="https://github.com/jakesanghavi/COVID-19_Map" target="blank"><img src="coronavirus.png"></img></a>
+                <figcaption>
+                    <a href="https://github.com/jakesanghavi/NBA_Stats" target="blank"><li>NBA Scraping</br></br>and Analytics</li></a>
+                </figcaption>
+            </figure>
             <ul class="captions">
-                <a href="https://github.com/FGCUStellarResearch/Gyrochronology" target="blank"><li class="former">Astronomy Research</br></br>(Gyrochronology)</li></a>
-                <a href=https://github.com/jakesanghavi/NFL_Stats" target="blank"><li class="former">NFL Scraping</br></br>and Analytics</li></a>
-                <a href="https://github.com/jakesanghavi/COVID-19_Map" target="blank"><li class="latter">USA Coronavirus</br></br>Map</li></a>
-                <a href="https://github.com/jakesanghavi/NBA_Stats" target="blank"><li class="latter">NBA Scraping</br></br>and Analytics</li></a>
+                <!-- <a href="https://github.com/FGCUStellarResearch/Gyrochronology" target="blank"><li class="former">Astronomy Research</br></br>(Gyrochronology)</li></a> -->
+                <!-- <a href=https://github.com/jakesanghavi/NFL_Stats" target="blank"><li class="former">NFL Scraping</br></br>and Analytics</li></a> -->
+                <!-- <a href="https://github.com/jakesanghavi/COVID-19_Map" target="blank"><li class="latter">USA Coronavirus</br></br>Map</li></a> -->
+                <!-- <a href="https://github.com/jakesanghavi/NBA_Stats" target="blank"><li class="latter">NBA Scraping</br></br>and Analytics</li></a> -->
             </ul>
         </div>
 
         <div id="contact" class="main-section" style="background-image: url('watersunset.jpg');
-        background-size: cover; height: 710px; padding-top:80px;">
+        background-size: cover; height: 92vh; padding-top:7vh;">
             <ul class="main-text">
                 <li style="font-size: 34px; font-family: Rockwell;">Contact</li>
             </ul>
+            <div class = 'form'>
+                <form id="fcf-form-id" class="fcf-form-class" method="post" action="https://formspree.io/f/mvodvjld">
+                    
+                    <div class="fcf-form-group">
+                        <label for="Name" class="fcf-label">Your name</label>
+                        <div class="fcf-input-group">
+                            <input type="text" id="Name" name="Name" class="fcf-form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="fcf-form-group">
+                        <label for="Email" class="fcf-label">Your email address</label>
+                        <div class="fcf-input-group">
+                            <input type="email" id="Email" name="_replyto" class="fcf-form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="fcf-form-group">
+                        <label for="Message" class="fcf-label">Your message</label>
+                        <div class="fcf-input-group">
+                            <textarea id="Message" name="Message" class="fcf-form-control" rows="6" maxlength="3000" required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="fcf-form-group">
+                        <button type="submit" id="fcf-button" class="fcf-btn fcf-btn-primary fcf-btn-lg fcf-btn-block">Send Message</button>
+                    </div>
+
+                </form>
+            </div>
         </div>
 
         <div class="footer">
@@ -84,5 +130,5 @@
                 </p>
             </div>
         </div>
+
     </body>
-</html>
