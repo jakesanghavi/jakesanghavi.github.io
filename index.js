@@ -7,6 +7,7 @@ $(document).ready(function(){
     $(function () {
         $(window).scroll(function () {
             // set distance user needs to scroll before we start fadeIn
+            console.log($(this).scrollTop())
             if ($(this).scrollTop() > 736) { //For dynamic effect use $nav.height() instead of '100'
                 $nav.fadeIn(750);
             } else {

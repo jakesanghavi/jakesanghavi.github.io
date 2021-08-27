@@ -12,7 +12,7 @@
 html,body {
     width: 100%;
     height: 100%;
-    overflow-x: hidden; 
+    /* overflow-x: hidden;  */
 }
 
 /* Set scrolling behavior properly */
@@ -37,26 +37,49 @@ html {
   color: black;
 }
 
+/* Style the navbar that appears after the first section */
+.navbar {
+  position: fixed;
+  width: 100vw;
+  max-width: 100%;
+  background-color: #C8A2C8;
+  z-index: 2;
+}
+/* Style the links in the latent navbar. */
+.navbar a {
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 18px;
+  font-family: "Goudy Old Style";
+}
+
+.navbar .active {
+  color: #002a64;
+}
+
 /* Properly aligns and colors the homepage main text */
 .main-text {
-margin-top: 0.75vw;
-text-align: center;
-/* display: inline-block; */
-color: white;
-text-decoration: none;
-list-style-type: none;
+  margin-top: 0.75vw;
+  text-align: center;
+  /* display: inline-block; */
+  color: white;
+  text-decoration: none;
+  list-style-type: none;
 }
 
 .aligner {
-display: table;
-margin-top: 4vw;
+  display: table;
+  margin-top: 4vw;
 }
 
 .self-image {
-position: relative;
-left: 4vw;
-border-radius: 16px;
-margin-top: 6vw;  
+  position: relative;
+  left: 4vw;
+  border-radius: 16px;
+  margin-top: 6vw;  
 }
 
 /* #about {
@@ -81,78 +104,78 @@ display: flex;
 }
 
 br {
-display: block; /* makes it have a width */
-content: ""; /* clears default height */
-margin-top: 0; /* change this to whatever height you want it */
+  display: block; /* makes it have a width */
+  content: ""; /* clears default height */
+  margin-top: 0; /* change this to whatever height you want it */
 }
 
 .summary {
-margin-bottom: 1vw;
-max-width: 45%;
-vertical-align: middle;
+  margin-bottom: 1vw;
+  max-width: 45%;
+  vertical-align: middle;
 }
 
 span {
-top: 10%;
+  top: 10%;
 }
 
 /* Styles and positions the images in the projects section */
 .thumbnails {
-border-radius: 16px;
-position: relative;
-left: 7vw;
-top: 50px;
-margin-right: 50px;
-z-index: 1;
-height: 18vw;
-width: 18vw;
+  border-radius: 16px;
+  position: relative;
+  left: 7vw;
+  top: 50px;
+  margin-right: 50px;
+  z-index: 1;
+  height: 18vw;
+  width: 18vw;
 }
 
 /* Styles the first two images in projects. */
 .former {
-display: inline-block;
-vertical-align: top;
-position: relative;
-top: 80px;
-left: 6vw;
-margin-right: 4%;
-color: white;
-font-size: 30px;
-font-family: "Goudy Old Style";
-text-align: center;
+  display: inline-block;
+  vertical-align: top;
+  position: relative;
+  top: 80px;
+  left: 6vw;
+  margin-right: 4%;
+  color: white;
+  font-size: 30px;
+  font-family: "Goudy Old Style";
+  text-align: center;
 }
 
 /* Styles the second two images in projects. */
 .latter {
-display: inline-block;
-/*If you get a warning here, ignore it. Both display: and float: are required. */
-float: right;
-vertical-align: top;
-position: relative;
-top: 80px;
-right: 125px;
-margin-left: 165px;
-color: white;
-font-size: 30px;
-font-family: "Goudy Old Style";
-text-align: center;
+  display: inline-block;
+  /*If you get a warning here, ignore it. Both display: and float: are required. */
+  float: right;
+  vertical-align: top;
+  position: relative;
+  top: 80px;
+  right: 125px;
+  margin-left: 165px;
+  color: white;
+  font-size: 30px;
+  font-family: "Goudy Old Style";
+  text-align: center;
 }
 
 /* Styles and places footer in the correct location. */
 .footer {
 /* position: fixed; */
-left: 0;
-bottom: 0;
-width: 100%;
-background-color: black;
-color: white;
-text-align: center;
-padding-top: 10px;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: black;
+  color: white;
+  text-align: center;
+  padding-top: 10px;
 }
 
 /* Colors links in footer white */
 .white-links {
-color: white;
+  color: white;
 }
 
 /* Styles links at bottom to look nicer */
@@ -162,29 +185,29 @@ padding-bottom: 20px;
 }
 
 figure {
-display: inline-block;
-/* border: 1px dotted gray; */
-margin: 2vw; /* adjust as needed */
-margin-top: 4vw;
+  display: inline-block;
+  /* border: 1px dotted gray; */
+  margin: 2vw; /* adjust as needed */
+  margin-top: 4vw;
 }
 figure img {
-vertical-align: top;
-left: 0vw;
-border-radius: 16px;
-/* height: 18vw;
-width: 18vw; */
-position: relative;
-z-index: 1;
+  vertical-align: top;
+  left: 0vw;
+  border-radius: 16px;
+  /* height: 18vw;
+  width: 18vw; */
+  position: relative;
+  z-index: 1;
 }
 figure figcaption a {
-/* border: 1px dotted blue; */
-text-align: center;
-color: white;
-list-style-type: none;
-font-family: "Goudy Old Style";
-text-decoration: none;
-font-size: 2vw;
-/* margin-left: 0.05vw; */
+  /* border: 1px dotted blue; */
+  text-align: center;
+  color: white;
+  list-style-type: none;
+  font-family: "Goudy Old Style";
+  text-decoration: none;
+  font-size: 2vw;
+  /* margin-left: 0.05vw; */
 }
 
 .form {
