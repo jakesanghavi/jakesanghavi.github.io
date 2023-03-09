@@ -19,30 +19,38 @@
   html {
     scroll-behavior: smooth;
   }
-  
-  /* Style the navbar that appears after the first section */
-  .navbar {
-    position: fixed;
-    width: 100vw;
-    max-width: 100%;
-    background-color: #C8A2C8;
-    z-index: 2;
+
+  .back {
+    position: absolute;
+    top: 2vh;
+    left: 1.5vw;
   }
-  /* Style the links in the latent navbar. */
-  .navbar a {
+
+  .back button {
     float: left;
     color: #f2f2f2;
     text-align: center;
-    padding: 14px 16px;
+    padding: 2vh 1.5vw;
     text-decoration: none;
-    font-size: 18px;
+    font-size: 30px;
     font-family: "Goudy Old Style";
   }
   
-  .navbar .active {
-    color: #002a64;
+  /* Change the color of links on hover */
+  .back button:hover {
+    background-color: #ddd;
+    padding: 2vh 1.5vw;
+    color: black;
   }
   
+  i {
+    transform: scaleX(-1);
+    -moz-transform: scaleX(-1);
+    -webkit-transform: scaleX(-1);
+    -ms-transform: scaleX(-1);
+    color: white;
+  }
+
   /* Properly aligns and colors the homepage main text */
   .main-text {
     margin-top: 0.75vw;
@@ -53,81 +61,10 @@
     list-style-type: none;
   }
   
-  .aligner {
-    display: table;
-    margin-top: 4vw;
-  }
-  
-  .thumbnail-container {
-    text-align: center;
-    margin-right: 2.75vw;
-    margin-top: 5vh;
-  }
-  
-  .self-image {
-    position: relative;
-    left: 4vw;
-    border-radius: 16px;
-  }
-  
-  /* #about {
-  vertical-align: middle;
-  align-items: center;
-  display: flex;
-  } */
-  
-  .write-up {
-    color: white;
-    position: relative;
-    /* display: inline-block; */
-    /* margin-top: 5vw; */
-    left: 30%;
-    word-wrap: break-word;
-    max-width: 45%;
-    font-size: 150%;
-    font-family: "Goudy Old Style";
-    margin-bottom: 3.25%;
-    vertical-align: middle;
-    display: table-cell;
-  }
-  
   br {
     display: block; /* makes it have a width */
     content: ""; /* clears default height */
     margin-top: 0; /* change this to whatever height you want it */
-  }
-  
-  .summary {
-    margin-bottom: 1vw;
-    max-width: 45%;
-    vertical-align: middle;
-  }
-  
-  span {
-    top: 10%;
-  }
-  
-  /* Styles and places footer in the correct location. */
-  .footer {
-  /* position: fixed; */
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    background-color: black;
-    color: white;
-    text-align: center;
-    padding-top: 10px;
-  }
-  
-  /* Colors links in footer white */
-  .white-links {
-    color: white;
-  }
-  
-  /* Styles links at bottom to look nicer */
-  .bottom-links {
-  padding-top: 10px;
-  padding-bottom: 20px;
   }
   
   figure {
