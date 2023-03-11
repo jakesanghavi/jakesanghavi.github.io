@@ -26,18 +26,18 @@
     left: 1.5vw;
   }
 
-  .back a {
+  .back button {
     float: left;
     color: #f2f2f2;
     text-align: center;
     padding: 2vh 1.5vw;
     text-decoration: none;
-    font-size: 25px;
+    font-size: 30px;
     font-family: "Goudy Old Style";
   }
   
   /* Change the color of links on hover */
-  .back a:hover {
+  .back button:hover {
     background-color: #ddd;
     padding: 2vh 1.5vw;
     color: black;

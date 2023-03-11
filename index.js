@@ -1,32 +1,24 @@
 $(document).ready(function(){
-    var $nav = $('.navbar');//Caching element
-    // hide .navbar first - you can also do this in css .nav{display:none;}
-    $nav.hide();
+    const sections = document.querySelectorAll("section");
+    let scrollY = window.pageYOffset;
 
-    // fade in .navbar
-    $(function () {
-        $(window).scroll(function () {
-            // set distance user needs to scroll before we start fadeIn
-            if ($(this).scrollTop() > (0.9 * $(window).height())) { //For dynamic effect use $nav.height() instead of '100'
-                $nav.fadeIn(750);
+    function navHighlighter() {
+    
+        let scrollY = window.pageYOffset;
+        
+        sections.forEach(current => {
+            const sectionHeight = current.offsetHeight;
+            const sectionTop = current.offsetTop - 50;
+            sectionId = current.getAttribute("id");
+            
+            if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+                document.querySelector("#navbar a[href*=" + sectionId + "]").classList.add("active");
             } else {
-                $nav.fadeOut(750);
-            }
-            if ($(this).scrollTop() > (0.9 * $(window).height()) && $(this).scrollTop() < (1.9 * $(window).height())){
-                $('.navbar .projects').removeClass('active');
-                $('.navbar .contact').removeClass('active');
-                $('.navbar .about').addClass('active');
-            }
-            else if ($(this).scrollTop() > (1.9 * $(window).height()) && $(this).scrollTop() < (2.92 * $(window).height())) {
-                $('.navbar .about').removeClass('active');
-                $('.navbar .contact').removeClass('active');
-                $('.navbar .projects').addClass('active');
-            }
-            else if ($(this).scrollTop() > (2.92 * $(window).height())) {
-                $('.navbar .about').removeClass('active');
-                $('.navbar .projects').removeClass('active');
-                $('.navbar .contact').addClass('active');
+                document.querySelector("#navbar a[href*=" + sectionId + "]").classList.remove("active");
             }
         });
-    });
+    }
+
+    navHighlighter();
+    window.addEventListener("scroll", navHighlighter);
 });

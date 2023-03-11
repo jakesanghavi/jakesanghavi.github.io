@@ -12,7 +12,7 @@
 html,body {
     width: 100%;
     height: 100%;
-    /* overflow-x: hidden;  */
+    overflow-x: clip;
 }
 
 /* Set scrolling behavior properly */
@@ -22,6 +22,8 @@ html {
 
 /* Style the navbar that appears after the first section */
 .navbar {
+  display: flex;
+  justify-content: center;
   position: fixed;
   width: 100vw;
   max-width: 100%;
@@ -43,9 +45,14 @@ html {
   color: #002a64;
 }
 
+/* section {
+   height: 90vh;
+} */
+
 /* Properly aligns and colors the homepage main text */
 .main-text {
-  margin-top: 0.75vw;
+  margin-top: 5vh;
+  margin-bottom: 7.5rem;
   text-align: center;
   /* display: inline-block; */
   color: white;
@@ -53,42 +60,23 @@ html {
   list-style-type: none;
 }
 
-.aligner {
-  display: table;
-  margin-top: 4vw;
-}
-
-.thumbnail-container {
-  text-align: center;
-  margin-right: 2.75vw;
-  margin-top: 5vh;
-}
-
 .self-image {
-  position: relative;
-  left: 4vw;
+  display: block;
+  margin: auto;
   border-radius: 16px;
 }
 
-/* #about {
-vertical-align: middle;
-align-items: center;
-display: flex;
-} */
-
 .write-up {
   color: white;
-  position: relative;
+  /* position: relative; */
   /* display: inline-block; */
   /* margin-top: 5vw; */
-  left: 30%;
+  /* left: 30%; */
   word-wrap: break-word;
-  max-width: 45%;
   font-size: 150%;
   font-family: "Goudy Old Style";
-  margin-bottom: 3.25%;
   vertical-align: middle;
-  display: table-cell;
+  /* display: table-cell; */
 }
 
 br {
@@ -98,8 +86,7 @@ br {
 }
 
 .summary {
-  margin-bottom: 1vw;
-  max-width: 45%;
+  margin-bottom: 0.5vw;
   vertical-align: middle;
 }
 
@@ -107,53 +94,23 @@ span {
   top: 10%;
 }
 
-/* Styles and places footer in the correct location. */
-.footer {
-/* position: fixed; */
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  background-color: black;
-  color: white;
-  text-align: center;
-  padding-top: 10px;
-}
-
-/* Colors links in footer white */
-.white-links {
-  color: white;
-}
-
-/* Styles links at bottom to look nicer */
-.bottom-links {
-padding-top: 10px;
-padding-bottom: 20px;
-}
-
-figure {
-  display: inline-block;
-  /* border: 1px dotted gray; */
-  margin: 2vw; /* adjust as needed */
-  margin-top: 4vw;
-}
 figure img {
-  vertical-align: top;
-  left: 0vw;
+  /* vertical-align: top; */
+  /* left: 0vw; */
   border-radius: 16px;
-  /* height: 18vw;
-  width: 18vw; */
-  position: relative;
+  /* position: relative; */
   z-index: 1;
+  display: block;
+  margin: auto;
 }
+
 figure figcaption a {
-  /* border: 1px dotted blue; */
   text-align: center;
   color: white;
   list-style-type: none;
   font-family: "Goudy Old Style";
   text-decoration: none;
   font-size: 2vw;
-  /* margin-left: 0.05vw; */
 }
 
 .form {
@@ -307,4 +264,22 @@ label.fcf-label {
 
 input[type="submit"].fcf-btn-block, input[type="reset"].fcf-btn-block, input[type="button"].fcf-btn-block {
   width: 100%;
+}
+
+/* Styles and places footer in the correct location. */
+.footer {
+  background-color: black;
+  color: white;
+  text-align: center;
+  padding-top: 1vh;
+}
+
+/* Colors links in footer white */
+.white-links {
+  color: white;
+}
+
+/* Styles links at bottom to look nicer */
+.bottom-links {
+  padding-bottom: 0.5vh;
 }
