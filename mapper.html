@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        #form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            background-color: #fff;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #form input,
+        #form button {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #form button {
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        #form button:hover {
+            background-color: #0056b3;
+        }
+
+        #map {
+            height: 500px;
+            margin: 20px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+        }
+
+        #legend,
+        #place-list {
+            background-color: #fff;
+            margin: 0 20px 20px;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .legend-item,
+        .place-item {
+            margin-bottom: 5px;
+        }
+
+        .category-color {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+            border-radius: 50%;
+        }
+
+        .emoji-icon {
+            font-size: 16px;
+            margin-right: 4px;
+        }
+
+        #legend h3,
+        #place-list h3 {
+            margin-top: 0;
+        }
+
+        .category-section {
+            margin-bottom: 10px;
+        }
+
+        .category-section h4 {
+            margin: 8px 0 4px;
+        }
+
+        .custom-div-icon .label-box {
+            background: white;
+            padding: 2px 4px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- <div id="form">
+        <input type="text" id="name" placeholder="Place Name" />
+        <input type="text" id="category" placeholder="Category" />
+        <input type="text" id="emoji" placeholder="Emoji/Icon" />
+        <input type="text" id="image" placeholder="Image URL (optional)" />
+        <input type="number" id="latitude" placeholder="Latitude" />
+        <input type="number" id="longitude" placeholder="Longitude" />
+        <button onclick="addPlace()">Add Place</button>
+        <button onclick="deleteAllMarkers()">Delete All Markers</button>
+    </div> -->
+
+    <div id="map"></div>
+
+    <div id="legend">
+        <h3>Legend</h3>
+        <div id="legend-items"></div>
+    </div>
+
+    <div id="place-list">
+        <h3>Places</h3>
+        <div id="places"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([39.7392, -104.9903], 8); // Centered on Colorado
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        let placeCounter = 1;
+        const categories = {};
+        const markers = [];
+
+        function updateLegend() {
+            const legendItems = document.getElementById('legend-items');
+            legendItems.innerHTML = '';
+            for (const [category, data] of Object.entries(categories)) {
+                const div = document.createElement('div');
+                div.className = 'legend-item';
+                div.innerHTML = `<span class="emoji-icon">${data.emoji}</span>${category}`;
+                legendItems.appendChild(div);
+            }
+        }
+
+        function updatePlaceList() {
+            const placesDiv = document.getElementById('places');
+            placesDiv.innerHTML = '';
+            for (const [category, data] of Object.entries(categories).sort()) {
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                section.innerHTML = `<h4>${category}</h4>`;
+                const ul = document.createElement('ul');
+                data.places.forEach(p => {
+                    const li = document.createElement('li');
+                    li.className = 'place-item';
+                    li.innerHTML = `${p.number}. <a href="${p.url}" target="_blank" rel="noopener noreferrer"><strong>${p.name}</strong></a>`;
+                    ul.appendChild(li);
+                });
+                section.appendChild(ul);
+                placesDiv.appendChild(section);
+            }
+        }
+
+
+        function addPlace(placeData = null) {
+            const name = placeData?.name || document.getElementById('name').value;
+            const url = placeData?.url || '';  // or you could get from a form field later if needed
+            const category = placeData?.category || document.getElementById('category').value;
+            const emoji = placeData?.emoji || document.getElementById('emoji').value || '📍';
+            const image = placeData?.image || document.getElementById('image').value;
+            const lat = placeData?.lat || parseFloat(document.getElementById('latitude').value);
+            const lng = placeData?.lng || parseFloat(document.getElementById('longitude').value);
+
+            if (!name || !category || isNaN(lat) || isNaN(lng)) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            if (!categories[category]) {
+                categories[category] = {
+                    color: '#' + Math.floor(Math.random() * 16777215).toString(16),
+                    emoji,
+                    places: []
+                };
+                updateLegend();
+            }
+
+            const marker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div class="label-box">${emoji} ${placeCounter}</div>`
+                })
+            }).addTo(map);
+
+            let tooltipContent = `<strong>${name}</strong>`;
+            if (image) {
+                tooltipContent += `<br><img src="${image}" alt="${name}" style="max-width:100px; max-height:80px; display:block; margin-top:4px;" />`;
+            }
+            marker.bindTooltip(tooltipContent, { permanent: false, direction: 'top', opacity: 0.9 });
+
+            const place = { number: placeCounter, name, category, emoji, image, lat, lng, url, leafletMarker: marker };
+            categories[category].places.push(place);
+            updatePlaceList();
+
+            markers.push(place);
+            placeCounter++;
+        }
+
+        function deleteAllMarkers() {
+            markers.forEach(marker => {
+                if (marker.leafletMarker) {
+                    map.removeLayer(marker.leafletMarker);
+                }
+            });
+            markers.length = 0;
+            for (const key in categories) delete categories[key];
+            placeCounter = 1;
+            document.getElementById('legend-items').innerHTML = '';
+            document.getElementById('places').innerHTML = '';
+        }
+
+        const staticPlaces = [
+            { name: "Rocky Mountain National Park", category: "Hiking", emoji: "🥾", image: "https://lh3.googleusercontent.com/gps-cs-s/AC9h4npoJBLZFJ9LeJlLQOUD51wRNrJe6qBWhi1Pllv5rqahrMfguqAoAF6zfJNVeuVzK0GzJbTy_Can4dR68Yh5NPGOQ6PyD2Isy84YMeQ5_t1uYZcqKRqdY9TOt1S9KvyVUrUZJKuj=w270-h312-n-k-no", lat: 40.3466, lng: -105.7364, url: "https://www.nps.gov/romo/index.htm" },
+            { name: "Pike’s Peak", category: "Hiking", emoji: "🥾", image: "https://encrypted-tbn0.gstatic.com/licensed-image?q=tbn:ANd9GcS6CWVH6EAcN3Vfgb3-MBCoZ3ugIBR4BrPIWFvoPTr-MyAcOTb6COzC8Fe_RsXnzLFruSJrCOqH5ermpJCZ9JyAanJ01TzB_nEede3MkaU", lat: 38.8409, lng: -105.042, url: "https://coloradosprings.gov/drivepikespeak" },
+            { name: "Garden of the Gods", category: "Hiking", emoji: "🥾", image: "https://lh3.googleusercontent.com/gps-cs-s/AC9h4nollWi4afrwT3TGU7gQFFG7TaEQs0-oQDGFKS7fBRwSI3WhokzR-AaiLgpZtYt7USh0U9T1YJV_0Ial5HqPfhslx36rC_fb98o8w6TXkMnFeJWbdR9OXKgrmplA5aW0vyLFRjM=w135-h156-n-k-no", lat: 38.8718, lng: -104.8862, url: "https://gardenofgods.com/" },
+            { name: "Red Rock Amphitheatre", category: "Hiking", emoji: "🥾", image: "https://lh3.googleusercontent.com/gps-cs-s/AC9h4nr4IZ_GWtk-eKr901alu82tqwij1BSwZY5M8hkds9wJDYoE99Oo36j79x_IACn0LG60u3PESJcyXUvZDfbKzu3y62jtCaa22dc7VClFn7EBJKc-KHhVuP2dw95dWuIKy1sv1Xnp=w270-h312-n-k-no", lat: 39.6655, lng: -105.2052, url: "https://www.redrocksonline.com/" },
+            { name: "Forney Transportation Museum", category: "Inside", emoji: "🏛️", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTK01NVKhF_OzImMG1v6asrWCc0D-Q0Cnjcw&s", lat: 39.777134, lng: -104.970589, url: "https://www.forneymuseum.org/" },
+            { name: "Hammond's Candies Factory", category: "Inside", emoji: "🏛️", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQOQ4b8S7sKwxnGQz35MZEG0-qIcG5WlivU6A&s", lat: 39.803488, lng: -104.980523, url: "https://hammondscandies.com/pages/factory-tours-new?srsltid=AfmBOopnbs8nEc_JWInig0boxsRmFSxfbPgqTCRPGC_w1VLFaR2fWrxe" },
+            { name: "The Mint", category: "Inside", emoji: "🏛️", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTObSjIuO2z0o5WsCNuy2gmaLSP06FT1UoZ6w&s", lat: 39.7393, lng: -104.9923, url: "https://www.usmint.gov/about/tours-and-locations/denver/tour-denver-mint?srsltid=AfmBOoquqKgu4wtK6kvuhMINeMvWGWIOP6hFugCulnYw4mh40AtpP027" },
+            { name: "American Museum of Western Art", category: "Inside", emoji: "🏛️", image: "https://lh3.googleusercontent.com/p/AF1QipPTzMXhQCQRqaFN79SXEv0oe9-f8-zLFGnmVvO6=w270-h312-n-k-no", lat: 39.744814, lng: -104.988033, url: "https://www.denver.org/listing/american-museum-of-western-art-the-anschutz-collection/7705/" },
+            { name: "Meow Wolf Convergence Station", category: "Inside", emoji: "🏛️", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3hUD5tMSXKnTCdsGzwdnw68Vlqf7sxeBYdA&s", lat: 39.7408, lng: -105.0157, url: "https://meowwolf.com/visit/denver" },
+            { name: "Botanic Gardens", category: "Outside", emoji: "🚶‍♂️", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTH9DoYjQ0BGTJSkOpt6c9LmFGrohPdEL2Olg&s", lat: 39.7321, lng: -104.9613, url: "https://www.botanicgardens.org/" },
+            { name: "Olde Town Arvada", category: "Outside", emoji: "🚶‍♂️", image: "https://lh3.googleusercontent.com/gps-cs-s/AC9h4npzscbbsyJAwwugZvKHeyBuSQcfztRpYllodWd8wCy6vgmZln_dlV5M4W8PNAJUE-YDZyRCMRoyALQRQX6wtTmrMjf9434fuxHbXDdqH1BvuaCQvOQFRU256a_H10RpSalbsLEk=w1080-h624-n-k-no", lat: 39.8009, lng: -105.0799, url: "https://www.oldetownarvada.org/" },
+            { name: "Butterfly Pavilion", category: "Outside", emoji: "🚶‍♂️", image: "https://lh3.googleusercontent.com/gps-cs-s/AC9h4noxMxbl6vlG93r3QA-myOTXuouHmaKiGe-DLaa9o3F7DKzwbjamv_Z-RyjCo2B8pt-z2cuhR3MAWYrJq3qWIx1gSPgAag8O4ID699v6U10zyadMfSbKrkDNEXe4nzlPlPkTj3Ii=w270-h312-n-k-no", lat: 39.8873, lng: -105.0666, url: "https://butterflies.org/?utm_source=google&utm_campaign=22127943024&utm_content=182060560268&utm_term=denver%20butterfly%20pavilion&utm_medium=729432084212&gad_source=1&gad_campaignid=22127943024&gbraid=0AAAAADl5Mmc3KBrCT-AGqRZjzkAESfnd9&gclid=Cj0KCQjw0erBBhDTARIsAKO8iqTZRhqPI4hWEQTex_63JdcwxlML3rNz2ubWyiWu_8FYBO2kHa3ha3caAtgHEALw_wcB" },
+            //{ name: "Bishop Castle", category: "Outside", emoji: "🚶‍♂️", image: "https://lh3.googleusercontent.com/gps-cs-s/AC9h4nrmkqrE4Kff2SeRSUsxt794AukgZzaJbiFl7SiHAD2b9iR-2_73zIozI5nqTPdsCg48hqIoYQiUSLSTKn371gxyhnXtpYe2PSzanVOAH1jnwfsy8h8g43R5F47TPKXs98EM6LIo=w270-h312-n-k-no", lat: 37.9630, lng: -105.5417, url: "https://www.bishopcastle.org/" },
+            { name: "Mural Tour", category: "Outside", emoji: "🚶‍♂️", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdTLS_3FxxVQ_42VQ1GqNQiFgUXmImp30XGg&s", lat: 39.770853, lng: -104.980218, url: "https://www.getyourguide.com/-l948/-tc30/?cmp=ga&cq_src=google_ads&cq_cmp=6658509032&cq_con=82780168527&cq_term=denver%20mural%20tour&cq_med=&cq_plac=&cq_net=g&cq_pos=&cq_plt=gp&campaign_id=6658509032&adgroup_id=82780168527&target_id=kwd-1658545139674&loc_physical_ms=9010928&match_type=e&ad_id=588629109299&keyword=denver%20mural%20tour&ad_position=&feed_item_id=&placement=&device=c&partner_id=CD951&gad_source=1&gad_campaignid=6658509032&gbraid=0AAAAADmzJCN9Kqhv3pOKWEsaLj0UcvKOy&gclid=Cj0KCQjw0erBBhDTARIsAKO8iqRN6rPa-Fvvh3jKL69nla-MbZq39Yoe0jtowpjcu3mnQUL4WQStSMYaAgdaEALw_wcB" },
+        ];
+
+
+        staticPlaces.forEach(addPlace);
+    </script>
+</body>
+
+</html>

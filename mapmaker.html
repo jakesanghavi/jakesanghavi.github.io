@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+    }
+    #form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 15px;
+      background-color: #fff;
+      border-bottom: 1px solid #ddd;
+    }
+    #form input, #form button {
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    #form button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    #form button:hover {
+      background-color: #0056b3;
+    }
+    #map {
+      height: 500px;
+      margin: 20px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+    }
+    #legend, #place-list {
+      background-color: #fff;
+      margin: 0 20px 20px;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    .legend-item, .place-item {
+      margin-bottom: 5px;
+    }
+    .category-color {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 5px;
+      border-radius: 50%;
+    }
+    .emoji-icon {
+      font-size: 16px;
+      margin-right: 4px;
+    }
+    #legend h3, #place-list h3 {
+      margin-top: 0;
+    }
+    .category-section {
+      margin-bottom: 10px;
+    }
+    .category-section h4 {
+      margin: 8px 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="form">
+    <input type="text" id="name" placeholder="Place Name" />
+    <input type="text" id="category" placeholder="Category" />
+    <input type="text" id="emoji" placeholder="Emoji/Icon" />
+    <input type="text" id="image" placeholder="Image URL (optional)" />
+    <input type="number" id="latitude" placeholder="Latitude" />
+    <input type="number" id="longitude" placeholder="Longitude" />
+    <button onclick="addPlace()">Add Place</button>
+  </div>
+
+  <div id="map"></div>
+
+  <div id="legend">
+    <h3>Legend</h3>
+    <div id="legend-items"></div>
+  </div>
+
+  <div id="place-list">
+    <h3>Places</h3>
+    <div id="places"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    let placeCounter = 1;
+    const categories = {}; // { categoryName: { color, emoji, places: [] } }
+    const markers = [];
+
+    function updateLegend() {
+      const legendItems = document.getElementById('legend-items');
+      legendItems.innerHTML = '';
+      for (const [category, data] of Object.entries(categories)) {
+        const div = document.createElement('div');
+        div.className = 'legend-item';
+        div.innerHTML = `<span class="emoji-icon">${data.emoji}</span><span class="category-color" style="background-color: ${data.color}"></span>${category}`;
+        legendItems.appendChild(div);
+      }
+    }
+
+    function updatePlaceList() {
+      const placesDiv = document.getElementById('places');
+      placesDiv.innerHTML = '';
+      for (const [category, data] of Object.entries(categories)) {
+        const section = document.createElement('div');
+        section.className = 'category-section';
+        section.innerHTML = `<h4>${category}</h4>`;
+        const ul = document.createElement('ul');
+        data.places.forEach(p => {
+          const li = document.createElement('li');
+          li.className = 'place-item';
+          li.innerHTML = `${p.number}. <strong>${p.name}</strong>`;
+          ul.appendChild(li);
+        });
+        section.appendChild(ul);
+        placesDiv.appendChild(section);
+      }
+    }
+
+    function addPlace() {
+      const name = document.getElementById('name').value;
+      const category = document.getElementById('category').value;
+      const emoji = document.getElementById('emoji').value || '📍';
+      const image = document.getElementById('image').value;
+      const lat = parseFloat(document.getElementById('latitude').value);
+      const lng = parseFloat(document.getElementById('longitude').value);
+
+      if (!name || !category || isNaN(lat) || isNaN(lng)) {
+        alert('Please fill in all required fields.');
+        return;
+      }
+
+      if (!categories[category]) {
+        categories[category] = {
+          color: '#' + Math.floor(Math.random()*16777215).toString(16),
+          emoji,
+          places: []
+        };
+        updateLegend();
+      }
+
+      const marker = L.marker([lat, lng], {
+        icon: L.divIcon({
+          className: 'custom-div-icon',
+          html: `<div style="font-size: 20px;">${categories[category].emoji} ${placeCounter}</div>`
+        })
+      }).addTo(map);
+
+      let tooltipContent = `${name}`;
+      if (image) {
+        tooltipContent += `<br><img src="${image}" alt="${name}" style="max-width:100px; max-height:80px; display:block; margin-top:4px;" />`;
+      }
+      marker.bindTooltip(tooltipContent, { permanent: false, direction: 'top' });
+
+      let popupContent = `<strong>${name}</strong><br>Category: ${category}`;
+      if (image) popupContent += `<br><img src="${image}" alt="${name}" style="max-width:100px;" />`;
+      marker.bindPopup(popupContent);
+
+      const place = { number: placeCounter, name, category, image, lat, lng };
+      categories[category].places.push(place);
+      updatePlaceList();
+
+      markers.push(place);
+      placeCounter++;
+    }
+  </script>
+</body>
+</html>
