@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 
 export default function SkillCard({ skill, index }) {
@@ -8,7 +7,6 @@ export default function SkillCard({ skill, index }) {
       whileInView={{ opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.05 }}
-      // Simplified styling for a cleaner grid with no backgrounds or borders
       className="flex items-center justify-center p-1"
     >
       <img 

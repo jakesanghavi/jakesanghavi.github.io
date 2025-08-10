@@ -1,74 +1,33 @@
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, MapPin, Phone, Send, Github, Linkedin, Twitter } from 'lucide-react';
-import Button from './Button'
-import Input from './Input'
+import { useForm, ValidationError } from '@formspree/react';
+import Button from './Button';
+import Input from './Input';
 import Textarea from './TextArea';
 
 export default function ContactSection() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [state, handleSubmit] = useForm('xwpqabby'); // Replace with your own Formspree form ID
 
-  const SendEmail = async ({ to, subject, body }) => {
-    const response = await fetch('/api/send-email', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ to, subject, body }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to send email.');
-    }
-
-    return response.json();
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      await SendEmail({
-        to: 'john.doe@example.com',
-        subject: `Portfolio Contact: ${formData.name}`,
-        body: `
-          Name: ${formData.name}
-          Email: ${formData.email}
-          
-          Message:
-          ${formData.message}
-        `
-      });
-
-      setSubmitted(true);
-      setFormData({ name: '', email: '', message: '' });
-    } catch (error) {
-      console.error('Error sending email:', error);
-    }
-
-    setIsSubmitting(false);
-  };
-
-  const handleInputChange = (e) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }));
-  };
-
+  // Icons are apparently deprecated so need an alternate to lucide soon
   const socialLinks = [
     { icon: Github, href: 'https://github.com/jakesanghavi', label: 'GitHub' },
     { icon: Linkedin, href: 'https://linkedin.com/in/jake-sanghavi', label: 'LinkedIn' },
     { icon: Twitter, href: 'https://x.com/jakesanghavi', label: 'Twitter' }
   ];
+
+  const encodedEmail = "amFrZS5zYW5naGF2aUBnbWFpbC5jb20=";
+
+  // Open Gmail tab w filled in send to, subject, and starter heading
+  const handleEmailClick = (e) => {
+    e.preventDefault();
+    const decoded = atob(encodedEmail);
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+      decoded
+    )}&su=${encodeURIComponent("Portfolio Contact")}&body=${encodeURIComponent(
+      "Hi Jake,"
+    )}`;
+    window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+  };
 
   return (
     <section id="contact" className="py-20 bg-gradient-to-b from-purple-900 to-slate-900 relative overflow-hidden">
@@ -103,7 +62,7 @@ export default function ContactSection() {
           >
             <h3 className="text-2xl font-bold text-white mb-6">Send a Message</h3>
 
-            {submitted ? (
+            {state.succeeded ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -119,10 +78,9 @@ export default function ContactSection() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <Input
+                    id="name"
                     name="name"
                     placeholder="Your Name"
-                    value={formData.name}
-                    onChange={handleInputChange}
                     required
                     className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-400"
                   />
@@ -130,34 +88,34 @@ export default function ContactSection() {
 
                 <div>
                   <Input
-                    name="email"
+                    id="email"
                     type="email"
+                    name="email"
                     placeholder="Your Email"
-                    value={formData.email}
-                    onChange={handleInputChange}
                     required
                     className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 focus:border-blue-400"
                   />
+                  <ValidationError prefix="Email" field="email" errors={state.errors} />
                 </div>
 
                 <div>
                   <Textarea
+                    id="message"
                     name="message"
                     placeholder="Your Message"
                     rows={6}
-                    value={formData.message}
-                    onChange={handleInputChange}
                     required
                     className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 resize-none focus:border-blue-400"
                   />
+                  <ValidationError prefix="Message" field="message" errors={state.errors} />
                 </div>
 
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={state.submitting}
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 py-3 text-lg font-medium transition-all duration-300 transform hover:scale-105"
                 >
-                  {isSubmitting ? (
+                  {state.submitting ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Sending...
@@ -184,15 +142,33 @@ export default function ContactSection() {
             <div>
               <h3 className="text-2xl font-bold text-white mb-6">Get in Touch</h3>
               <p className="text-slate-300 text-lg leading-relaxed mb-8">
-                {/* PH */}
+                The best way to reach me is via email. I typically respond within 24 hours.
               </p>
             </div>
 
+            {/* Call the contact function over the link to circumvent the form if people prefer that
+            May eventually change this to just my own backend if I end up wanting to pay for it. */}
             <div className="space-y-6">
               {[
-                { icon: Mail, label: 'Email', value: 'john.doe@example.com', href: 'mailto:john.doe@example.com' },
+                {
+                  icon: Mail,
+                  label: 'Email',
+                  value: (
+                    <>
+                      Use the contact form to email me, or {' '}
+                      <a
+                        href="#"
+                        onClick={handleEmailClick}
+                        className="text-blue-400 hover:underline"
+                      >
+                        click here to open Gmail
+                      </a>
+                      !
+                    </>
+                  ),
+                },
                 { icon: Phone, label: 'Phone', value: 'Please email ahead to request a phone interview.' },
-                { icon: MapPin, label: 'Location', value: 'Atlanta, GA' }
+                { icon: MapPin, label: 'Current Location', value: 'Atlanta, GA' }
               ].map((item, index) => (
                 <motion.div
                   key={index}
@@ -207,13 +183,7 @@ export default function ContactSection() {
                   </div>
                   <div>
                     <p className="text-slate-400 text-sm">{item.label}</p>
-                    {item.href ? (
-                      <a href={item.href} className="text-white hover:text-blue-400 transition-colors duration-300">
-                        {item.value}
-                      </a>
-                    ) : (
-                      <p className="text-white">{item.value}</p>
-                    )}
+                    <p className="text-white">{item.value}</p>
                   </div>
                 </motion.div>
               ))}

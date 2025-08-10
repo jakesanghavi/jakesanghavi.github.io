@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { projectsExport } from '../assets/imports'
 import ProjectCard from './ProjectCard';
@@ -10,6 +10,8 @@ export default function PortfolioSection() {
   const [activeFilter, setActiveFilter] = useState('all');
   const isLoading = false;
 
+  // Filter projects by keyword
+  // Add more keywords later
   const filterProjects = (filter) => {
     setActiveFilter(filter);
     if (filter === 'all') {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Github, ExternalLink, Star } from 'lucide-react';
 import Button from './Button';
@@ -8,6 +8,9 @@ export default function ProjectCard({ project, index }) {
   const [backgroundColor, setBackgroundColor] = useState('');
   const imageUrl = project.image_url || `https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=250&fit=crop&crop=entropy`;
 
+  // Use FastAverageColor for images that don't cover the full card side
+  // Most of my logos are square-ish so they don't really fit hte landscape
+  // size the card takes on desktop
   useEffect(() => {
     const fac = new FastAverageColor();
     const image = new Image();

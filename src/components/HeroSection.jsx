@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown, Github, Linkedin, Mail } from 'lucide-react';
 import Button from './Button'
@@ -10,9 +9,24 @@ export default function HeroSection() {
         document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // Simple email obfuscation
+    const encodedEmail = "amFrZS5zYW5naGF2aUBnbWFpbC5jb20=";
+
+    // Mailto sucks because nobody really uses the default mail app
+    // This just opens a new brwoser window instead
+    const handleEmailClick = (e) => {
+        e.preventDefault();
+        const decoded = atob(encodedEmail);
+        const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(decoded)}&su=${encodeURIComponent("Let's Connect")}&body=${encodeURIComponent("Hi Jake,")}`;
+        window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+    };
+
     return (
+        // Idk why it is called hero but that's apparently the cool title
         <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900">
             <Navbar />
+
+            {/* Background parallax, may update style later */}
             <ParticleField />
 
             <div className="relative z-10 text-center px-6 max-w-4xl mx-auto pt-24">
@@ -90,7 +104,8 @@ export default function HeroSection() {
                         <Linkedin size={28} />
                     </a>
                     <a
-                        href="mailto:john.doe@example.com"
+                        href='#'
+                        onClick={handleEmailClick}
                         className="text-slate-400 hover:text-blue-400 transition-colors duration-300 transform hover:scale-110"
                     >
                         <Mail size={28} />

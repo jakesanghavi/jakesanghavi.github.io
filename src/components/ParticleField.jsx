@@ -1,5 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
+// Background parallax-ish effect of little stars
+// Wanted to do some galaxy type thing but that was so hard
 export default function ParticleField() {
   const canvasRef = useRef(null);
 
@@ -16,6 +18,7 @@ export default function ParticleField() {
     const particles = [];
     const particleCount = 150;
 
+    // Make particles of random size/location/etc
     class Particle {
       constructor() {
         this.x = Math.random() * canvas.width;
@@ -60,7 +63,8 @@ export default function ParticleField() {
         particle.draw();
       });
 
-      // Draw connections
+      // Draw connections between particle groups
+      // based on distance between
       particles.forEach((particle, i) => {
         particles.slice(i + 1).forEach(otherParticle => {
           const dx = particle.x - otherParticle.x;

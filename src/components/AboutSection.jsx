@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Code, Laptop, Zap, Star, GraduationCap, Building2 } from 'lucide-react';
 import SkillCard from './SkillCard';
@@ -9,9 +9,7 @@ import Timeline from './Timeline';
 export default function AboutSection() {
   const [skills] = useState(skillsExport);
   const [workExperience] = useState(workExperienceExport)
-
   const [education] = useState(educationExport);
-
   const [activeTab, setActiveTab] = useState('experience');
 
   return (
@@ -60,9 +58,9 @@ export default function AboutSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            {/* Toggle Buttons (Tabs) */}
+            {/* Toggle Buttons (Tabs)
+            User can then toggle b/w education and work exp.*/}
             <div className="relative flex justify-center w-full max-w-sm mx-auto p-1 bg-slate-800 rounded-full border border-slate-700/50">
-              {/* The Animated Gradient Background */}
               <div
                 className={`absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-transform duration-360 ease-in-out w-1/2 
                   ${activeTab === 'experience' ? 'translate-x-0' : 'translate-x-full'}`}
@@ -85,6 +83,7 @@ export default function AboutSection() {
               </button>
             </div>
 
+            {/* Idk if i am crazy about timeline style - may need to change later */}
             <div className="mt-8">
               {activeTab === 'experience' ? (
                 <Timeline experiences={workExperience} />
