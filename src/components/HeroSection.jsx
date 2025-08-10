@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ChevronDown, Github, Linkedin, Mail } from 'lucide-react';
-import Button from './Button'
+import Button from '../overrides/Button'
 import ParticleField from './ParticleField';
 import Navbar from './Navbar'; // Import the new Navbar component
 

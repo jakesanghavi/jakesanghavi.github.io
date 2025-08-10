@@ -1,9 +1,9 @@
 import { motion } from 'framer-motion';
 import { Mail, MapPin, Phone, Send, Github, Linkedin, Twitter } from 'lucide-react';
 import { useForm, ValidationError } from '@formspree/react';
-import Button from './Button';
-import Input from './Input';
-import Textarea from './TextArea';
+import Button from '../overrides/Button';
+import Input from '../overrides/Input';
+import Textarea from '../overrides/TextArea';
 
 export default function ContactSection() {
   const [state, handleSubmit] = useForm('xwpqabby'); // Replace with your own Formspree form ID
@@ -163,7 +163,7 @@ export default function ContactSection() {
                       >
                         click here to open Gmail
                       </a>
-                      !
+                      .
                     </>
                   ),
                 },

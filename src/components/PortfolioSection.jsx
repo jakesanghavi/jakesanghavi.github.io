@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { projectsExport } from '../assets/imports'
 import ProjectCard from './ProjectCard';
-import Button from './Button'
+import Button from '../overrides/Button'
 
 export default function PortfolioSection() {
   const [projects] = useState(projectsExport);
@@ -48,7 +48,7 @@ export default function PortfolioSection() {
             Featured Projects
           </h2>
           <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            A collection of projects showcasing my skills in full-stack development, from concept to deployment
+            A collection of my coding projects to showcase my skills.
           </p>
         </motion.div>
 

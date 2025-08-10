@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Github, ExternalLink, Star } from 'lucide-react';
-import Button from './Button';
+import Button from '../overrides/Button';
 import { FastAverageColor } from 'fast-average-color';
 
 export default function ProjectCard({ project, index }) {

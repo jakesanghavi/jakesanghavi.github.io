@@ -24,6 +24,8 @@ const Timeline = ({ experiences = [] }) => {
     <div className="relative max-w-4xl mx-auto">
       <div className="absolute left-6 md:left-1/2 top-0 h-full w-0.5 bg-slate-700 transform md:-translate-x-1/2" />
 
+
+      {/* Alternating sides (if on desktop) */}
       <div className="space-y-8">
         {experiences.map((exp, index) => {
           const isOdd = index % 2 !== 0;
