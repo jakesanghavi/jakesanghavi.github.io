@@ -6,7 +6,7 @@ export const projectsExport = [
     technologies: ['React', 'Node', 'Express', 'MongoDB', 'OCR', 'Javascript'],
     github_url: 'https://github.com/jakesanghavi/CUE_Social/tree/main',
     live_url: 'https://cuetavern.com/',
-    image_url: 'https://raw.githubusercontent.com/jakesanghavi/jakesanghavi.github.io/main/images/tavern_logo.png',
+    image_url: '/images/tavern_logo.png',
     featured: true,
   },
   {
@@ -16,7 +16,7 @@ export const projectsExport = [
     technologies: ['React', 'Firebase', 'Node', 'Express', 'Playwright', 'Javascript'],
     github_url: 'https://github.com/jakesanghavi/TravelPlanner',
     live_url: 'https://roamio.earth/',
-    image_url: "https://raw.githubusercontent.com/jakesanghavi/jakesanghavi.github.io/main/images/roamio.png",
+    image_url: "/images/roamio_logo.png",
     featured: true,
   },
   {
