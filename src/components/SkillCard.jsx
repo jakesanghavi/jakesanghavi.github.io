@@ -13,6 +13,7 @@ export default function SkillCard({ skill, index }) {
         src={skill.image_url} 
         alt={skill.name} 
         className="w-12 h-12 object-contain"
+        loading="lazy"
       />
     </motion.div>
   );
