@@ -69,6 +69,7 @@ export default function AboutSection() {
                 onClick={() => setActiveTab('experience')}
                 className={`relative flex-1 flex items-center justify-center gap-2 px-6 py-2 rounded-full font-medium transition-colors duration-300 ease-in-out z-10
                   ${activeTab === 'experience' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+                aria-label="Experience"
               >
                 <Building2 />
                 Experience
@@ -77,6 +78,8 @@ export default function AboutSection() {
                 onClick={() => setActiveTab('education')}
                 className={`relative flex-1 flex items-center justify-center gap-2 px-6 py-2 rounded-full font-medium transition-colors duration-300 ease-in-out z-10
                   ${activeTab === 'education' ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+                aria-label="Education"
+
               >
                 <GraduationCap />
                 Education
