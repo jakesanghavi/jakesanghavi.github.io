@@ -2,7 +2,8 @@ import { motion } from 'framer-motion';
 import { ChevronDown, Github, Linkedin, Mail } from 'lucide-react';
 import Button from '../overrides/Button'
 import ParticleField from './ParticleField';
-import Navbar from './Navbar'; // Import the new Navbar component
+import Navbar from './Navbar';
+import pfp from '../assets/denver_me.jpeg';
 
 export default function HeroSection() {
     const scrollToSection = (sectionId) => {
@@ -37,7 +38,7 @@ export default function HeroSection() {
                 >
                     <div className="w-48 h-48 mx-auto rounded-full bg-gradient-to-r from-blue-400 to-purple-600 p-1">
                         <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center">
-                            <img className="w-full h-full rounded-full object-cover transform scale-150" src="/src/assets/denver_me.jpeg" alt="Denver_PFP"></img>
+                            <img className="w-full h-full rounded-full object-cover transform scale-150" src={pfp} alt="Denver_PFP"></img>
                         </div>
                     </div>
                 </motion.div>

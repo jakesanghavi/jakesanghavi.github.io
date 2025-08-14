@@ -1,3 +1,6 @@
+import tavernLogo from './tavern_logo.png';
+import roamioLogo from './roamio_logo.png';
+
 export const projectsExport = [
   {
     id: 1,
@@ -6,7 +9,7 @@ export const projectsExport = [
     technologies: ['React', 'Node', 'Express', 'MongoDB', 'OCR', 'Javascript'],
     github_url: 'https://github.com/jakesanghavi/CUE_Social/tree/main',
     live_url: 'https://cuetavern.com/',
-    image_url: '/src/assets/tavern_logo.png',
+    image_url: tavernLogo,
     featured: true,
   },
   {
@@ -16,7 +19,7 @@ export const projectsExport = [
     technologies: ['React', 'Firebase', 'Node', 'Express', 'Playwright', 'Javascript'],
     github_url: 'https://github.com/jakesanghavi/TravelPlanner',
     live_url: 'https://roamio.earth/',
-    image_url: "/src/assets/roamio_logo.png",
+    image_url: roamioLogo,
     featured: true,
   },
   {
