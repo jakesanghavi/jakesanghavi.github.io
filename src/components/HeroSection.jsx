@@ -93,6 +93,7 @@ export default function HeroSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-slate-400 hover:text-blue-400 transition-colors duration-300 transform hover:scale-110"
+                        aria-label="GitHub Link"
                     >
                         <Github size={28} />
                     </a>
@@ -101,6 +102,7 @@ export default function HeroSection() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-slate-400 hover:text-blue-400 transition-colors duration-300 transform hover:scale-110"
+                        aria-label="LinkedIn Link"
                     >
                         <Linkedin size={28} />
                     </a>
@@ -108,6 +110,7 @@ export default function HeroSection() {
                         href='#'
                         onClick={handleEmailClick}
                         className="text-slate-400 hover:text-blue-400 transition-colors duration-300 transform hover:scale-110"
+                        aria-label="Gmail Link"
                     >
                         <Mail size={28} />
                     </a>
