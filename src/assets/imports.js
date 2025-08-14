@@ -29,7 +29,7 @@ export const projectsExport = [
     technologies: ['Python', 'sklearn', 'Selenium'],
     github_url: 'https://github.com/jakesanghavi/NFL_Stats',
     live_url: '#',
-    image_url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=250&fit=crop&crop=entropy',
+    image_url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=307&h=192&fit=crop&crop=entropy',
     featured: false,
   },
   {
@@ -39,7 +39,7 @@ export const projectsExport = [
     technologies: ['Python', 'sklearn', 'Selenium'],
     github_url: 'https://github.com/jakesanghavi/NBA_Stats',
     live_url: '#',
-    image_url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&h=250&fit=crop&crop=entropy',
+    image_url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=307&h=192&fit=crop&crop=entropy',
     featured: false,
   },
 ];
