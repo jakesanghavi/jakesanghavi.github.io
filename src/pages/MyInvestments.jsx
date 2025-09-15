@@ -7,54 +7,41 @@ import { motion } from "framer-motion";
 
 // Predefined stock info
 const rawData = [
-  ["BUY", "Adobe", "ADBE", "2025-09-12", 348.04, 0.002, '#ec1f11'],
-  ["SELL", "Palantir", "PLTR", "2025-08-29", 156.93, 0.0033, '#000000'],
-  ["BUY", "ASML", "ASML", "2025-07-11", 801.06, 0.0006, '#0f248c'],
-  ["BUY", "Fiserv", "FI", "2025-07-09", 171.52, 0.003, '#ff6600'],
-  ["BUY", "Google", "GOOGL", "2025-07-09", 176.65, 0.003, '#fabf1d'],
-  ["BUY", "Google", "GOOGL", "2025-05-08", 153.97, 0.006, '#fabf1d'],
-  ["SELL", "Palantir", "PLTR", "2025-05-05", 124.42, 0.002, '#000000'],
-  ["SELL", "Apple", "AAPL", "2025-05-01", 213.25, 0.001, '#080808'],
-  ["BUY", "SPY", "SPY", "2025-04-09", 529.59, 0.003, '#4e9942'],
-  ["SELL", "Nvidia", "NVDA", "2025-04-08", 102.94, 0.015, '#7dba17'],
-  ["SELL", "Palantir", "PLTR", "2025-04-03", 84.94, 0.0095117, '#000000'],
-  ["BUY", "Nvidia", "NVDA", "2025-01-29", 121.25, 0.005, '#7dba17'],
-  ["BUY", "Palantir", "PLTR", "2024-12-13", 75, 0.002, '#000000'],
-  ["SELL", "Microsoft", "MSFT", "2024-12-03", 429.94, 0.001, '#1ba7f0'],
-  ["BUY", "Amazon", "AMZN", "2024-12-03", 213.34, 0.0017, '#ff9c1b'],
-  ["BUY", "Palantir", "PLTR", "2024-08-28", 30.36, 0.0033, '#000000'],
-  ["BUY", "Nvidia", "NVDA", "2024-08-28", 126.02, 0.004, '#7dba17'],
-  ["BUY", "Meta", "META", "2024-04-25", 431.69, 0.0004, '#1685fe'],
-  ["BUY", "Nvidia", "NVDA", "2023-11-21", 49.973, 0.01, '#7dba17'],
-  ["BUY", "Microsoft", "MSFT", "2023-11-20", 375.08, 0.001, '#1ba7f0'],
-  ["BUY", "Apple", "AAPL", "2023-07-14", 190.72, 0.001, '#080808'],
-  ["BUY", "Palantir", "PLTR", "2023-06-12", 15.77, 0.0095117, '#000000'],
-  ["BUY", "SPY", "SPY", "2023-06-01", 421.65, 0.003, '#4e9942'],
-  ["BUY", "Nvidia", "NVDA", "2023-06-01", 39.434, 0.005, '#7dba17'],
-  ["BUY", "SPY", "SPY", "2022-07-07", 386.78, 0.004, '#4e9942'],
-  ["BUY", "SPY", "SPY", "2022-01-10", 458.2, 0.0033, '#4e9942'],
-  ["SELL", "Vertex", "VRTX", "2021-08-16", 191.81, 0.0007, '#451964'],
-  ["BUY", "Vertex", "VRTX", "2021-08-02", 198.73, 0.0007, '#451964'],
-  ["SELL", "United Airlines", "UAL", "2021-08-02", 46.91, 0.0036, '#0a39a3'],
-  ["BUY", "United Airlines", "UAL", "2021-06-18", 54.43, 0.0036, '#0a39a3'],
-  ["BUY", "SPY", "SPY", "2021-03-05", 376.7, 0.004, '#4e9942']
+  ["BUY", "Adobe", "ADBE", "2025-09-12", 348.04, 0.002, '#ec1f11', "https://api.iconify.design/simple-icons:adobe.svg?color=%23EC1F11"],
+  ["SELL", "Palantir", "PLTR", "2025-08-29", 156.93, 0.0033, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000"],
+  ["BUY", "ASML", "ASML", "2025-07-11", 801.06, 0.0006, '#0f248c', "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0ibQsZPMfxRsF3gl0CV6fK48yi6MXfOSR9g&s"],
+  ["BUY", "Fiserv", "FI", "2025-07-09", 171.52, 0.003, '#ff6600', "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Fiserv_logo.svg/1280px-Fiserv_logo.svg.png"],
+  ["BUY", "Google", "GOOGL", "2025-07-09", 176.65, 0.003, '#fabf1d', "https://api.iconify.design/simple-icons:google.svg?color=%23FABF1D"],
+  ["BUY", "Google", "GOOGL", "2025-05-08", 153.97, 0.006, '#fabf1d', "https://api.iconify.design/simple-icons:google.svg?color=%23FABF1D"],
+  ["SELL", "Palantir", "PLTR", "2025-05-05", 124.42, 0.002, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000"],
+  ["SELL", "Apple", "AAPL", "2025-05-01", 213.25, 0.001, '#080808', "https://api.iconify.design/simple-icons:apple.svg?color=%23080808"],
+  ["BUY", "SPY", "SPY", "2025-04-09", 529.59, 0.003, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg"],
+  ["SELL", "Nvidia", "NVDA", "2025-04-08", 102.94, 0.015, '#7dba17', "https://api.iconify.design/simple-icons:nvidia.svg?color=%237DBA17"],
+  ["SELL", "Palantir", "PLTR", "2025-04-03", 84.94, 0.0095117, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000"],
+  ["BUY", "Nvidia", "NVDA", "2025-01-29", 121.25, 0.005, '#7dba17', "https://api.iconify.design/simple-icons:nvidia.svg?color=%237DBA17"],
+  ["BUY", "Palantir", "PLTR", "2024-12-13", 75, 0.002, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000"],
+  ["SELL", "Microsoft", "MSFT", "2024-12-03", 429.94, 0.001, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0"],
+  ["BUY", "Amazon", "AMZN", "2024-12-03", 213.34, 0.0017, '#ff9c1b', "https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9C1B"],
+  ["BUY", "Palantir", "PLTR", "2024-08-28", 30.36, 0.0033, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000"],
+  ["BUY", "Nvidia", "NVDA", "2024-08-28", 126.02, 0.004, '#7dba17', "https://api.iconify.design/simple-icons:nvidia.svg?color=%237DBA17"],
+  ["BUY", "Meta", "META", "2024-04-25", 431.69, 0.0004, '#1685fe', "https://api.iconify.design/simple-icons:meta.svg?color=%231685FE"],
+  ["BUY", "Nvidia", "NVDA", "2023-11-21", 49.973, 0.01, '#7dba17', "https://api.iconify.design/simple-icons:nvidia.svg?color=%237DBA17"],
+  ["BUY", "Microsoft", "MSFT", "2023-11-20", 375.08, 0.001, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0"],
+  ["BUY", "Apple", "AAPL", "2023-07-14", 190.72, 0.001, '#080808', "https://api.iconify.design/simple-icons:apple.svg?color=%23080808"],
+  ["BUY", "Palantir", "PLTR", "2023-06-12", 15.77, 0.0095117, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000"],
+  ["BUY", "SPY", "SPY", "2023-06-01", 421.65, 0.003, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg"],
+  ["BUY", "Nvidia", "NVDA", "2023-06-01", 39.434, 0.005, '#7dba17', "https://api.iconify.design/simple-icons:nvidia.svg?color=%237DBA17"],
+  ["BUY", "SPY", "SPY", "2022-07-07", 386.78, 0.004, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg"],
+  ["BUY", "SPY", "SPY", "2022-01-10", 458.2, 0.0033, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg"],
+  ["SELL", "Vertex", "VRTX", "2021-08-16", 191.81, 0.0007, '#451964', "https://api.iconify.design/simple-icons:vertex.svg?color=%23451964"],
+  ["BUY", "Vertex", "VRTX", "2021-08-02", 198.73, 0.0007, '#451964', "https://api.iconify.design/simple-icons:vertex.svg?color=%23451964"],
+  ["SELL", "United Airlines", "UAL", "2021-08-02", 46.91, 0.0036, '#0a39a3', "https://api.iconify.design/simple-icons:united-airlines.svg?color=%230A39A3"],
+  ["BUY", "United Airlines", "UAL", "2021-06-18", 54.43, 0.0036, '#0a39a3', "https://api.iconify.design/simple-icons:united-airlines.svg?color=%230A39A3"],
+  ["BUY", "SPY", "SPY", "2021-03-05", 376.7, 0.004, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg"]
 ];
 
-const toARGB = (hex, alpha = '23') => {
-  const clean = hex.replace('#', '');
-  if (clean.length !== 6) {
-    throw new Error(`Invalid hex color: ${hex}`);
-  }
-  return `${alpha}${clean}`.toUpperCase();
-};
-
 // Map to DF
-const df = rawData.map(([Action, Company, Ticker, dateStr, Price, Shares, Color]) => {
-  // normalize company name for simple-icons slug
-  const slug = Company.toLowerCase().replace(/\s+/g, '-');
-  const argbColor = toARGB(Color);
-  const logoUrl = `https://api.iconify.design/simple-icons:${slug}.svg?color=%${argbColor}`;
-
+const df = rawData.map(([Action, Company, Ticker, dateStr, Price, Shares, Color, LogoUrl]) => {
   return {
     Action,
     Company,
@@ -63,7 +50,7 @@ const df = rawData.map(([Action, Company, Ticker, dateStr, Price, Shares, Color]
     Price,
     Shares,
     Color,
-    LogoUrl: logoUrl,
+    LogoUrl: LogoUrl,
   };
 });
 
