@@ -93,10 +93,12 @@ function getHoldings(asOfDate) {
 
 // Call to Yahoo finance to get historical performance
 // for a ticket
-async function getPerformance(ticker, costBasis, buyDate, asOfDate) {
+async function getPerformance(ticker, lots, asOfDate) {
   try {
+    // Use the earliest buy date for fetching historical prices
+    const earliestBuyDate = new Date(Math.min(...lots.map(l => l.date)));
     const res = await fetch(
-      `${ROUTE}/api/stocks/${ticker}?start=${buyDate.toISOString()}&end=${asOfDate.toISOString()}`
+      `${ROUTE}/api/stocks/${ticker}?start=${earliestBuyDate.toISOString()}&end=${asOfDate.toISOString()}`
     );
     const hist = await res.json();
 
@@ -104,32 +106,32 @@ async function getPerformance(ticker, costBasis, buyDate, asOfDate) {
       return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
 
     const lastPrice = hist.quotes[hist.quotes.length - 1].close;
-    const lifetime = (lastPrice / costBasis - 1) * 100;
 
-    const years = (asOfDate - buyDate) / (1000 * 60 * 60 * 24 * 365.25);
-    const cagr =
-      years > 0
-        ? (Math.pow(lastPrice / costBasis, 1 / years) - 1) * 100
-        : lifetime;
+    // Weighted CAGR
+    const totalValue = lots.reduce((sum, l) => sum + l.shares * lastPrice, 0);
+    const weightedCAGR = lots.reduce((sum, l) => {
+      const years = (asOfDate.toDate() - l.date) / (1000 * 60 * 60 * 24 * 365.25);
+      const lotCAGR = years > 0 ? Math.pow(lastPrice / l.price, 1 / years) - 1 : 0;
+      const lotWeight = (l.shares * lastPrice) / totalValue;
+      return sum + lotCAGR * lotWeight;
+    }, 0);
 
-    const thirtyDaysAgo = asOfDate.subtract(30, 'day');
-    const perfStart = buyDate > thirtyDaysAgo.toDate() ? buyDate : thirtyDaysAgo.toDate();
+    // Monthly return (last 30 days or since purchase)
+    const thirtyDaysAgo = asOfDate.subtract(30, 'day').toDate();
+    const perfStart = new Date(Math.max(...lots.map(l => l.date), thirtyDaysAgo));
     const histMonth = hist.quotes.filter(q => new Date(q.date) >= perfStart);
-
-    const basisPrice =
-      buyDate > thirtyDaysAgo.toDate() && costBasis
-        ? costBasis
-        : histMonth.length > 0
-          ? histMonth[0].close
-          : null;
-
+    const basisPrice = histMonth.length > 0 ? histMonth[0].close : null;
     const monthly =
       histMonth.length > 0 && basisPrice
         ? ((histMonth[histMonth.length - 1].close / basisPrice) - 1) * 100
         : null;
 
-    return { lifetime, monthly, lastPrice, cagr };
-
+    return {
+      lastPrice,
+      lifetime: ((lastPrice / (lots.reduce((s, l) => s + l.shares * l.price, 0) / lots.reduce((s, l) => s + l.shares, 0)) - 1) * 100),
+      monthly,
+      cagr: weightedCAGR * 100
+    };
   } catch (err) {
     console.error(err);
     return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
@@ -148,10 +150,10 @@ export default function MyInvestments() {
       for (let h of holdings) {
         const totalCost = h.Lots.reduce((sum, l) => sum + l.shares * l.price, 0);
         const totalShares = h.Lots.reduce((sum, l) => sum + l.shares, 0);
-        const costBasis = totalCost / totalShares;
-        const buyDate = new Date(Math.min(...h.Lots.map(l => l.date)));
+        // const costBasis = totalCost / totalShares;
+        // const buyDate = new Date(Math.min(...h.Lots.map(l => l.date)));
 
-        const perf = await getPerformance(h.Ticker, costBasis, buyDate, asOfDate);
+        const perf = await getPerformance(h.Ticker, h.Lots, asOfDate);
 
         results.push({
           Ticker: h.Ticker,
