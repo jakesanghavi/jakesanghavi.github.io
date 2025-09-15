@@ -3,6 +3,7 @@ import { DatePicker } from "antd";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import M2 from "dayjs";
 import { ROUTE } from '../../constants';
+import { motion } from "framer-motion";
 
 // Predefined stock info
 const rawData = [
@@ -145,12 +146,10 @@ async function getPerformance(ticker, costBasis, buyDate, asOfDate) {
   }
 }
 
-
 export default function MyInvestments() {
   const [asOfDate, setAsOfDate] = useState(M2());
   const [performance, setPerformance] = useState([]);
 
-  // Load in the stock data
   useEffect(() => {
     async function load() {
       const holdings = getHoldings(asOfDate);
@@ -180,7 +179,6 @@ export default function MyInvestments() {
           Weight: r.Value / results.reduce((sum, x) => sum + x.Value, 0) * 100
         }));
 
-        // Sort by Weighting descending
         results.sort((a, b) => b.Weight - a.Weight);
       }
 
@@ -190,77 +188,127 @@ export default function MyInvestments() {
   }, [asOfDate]);
 
   return (
-    <div className="p-6 space-y-6">
-      <h2 className="text-2xl font-bold">Portfolio Dashboard</h2>
-      <DatePicker
-        value={asOfDate}
-        onChange={d => {
-          setAsOfDate(d);
-        }} />
+    <section id="investments" className="py-20 bg-slate-900 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 to-slate-900/20"></div>
 
-      {/* Pie Chart */}
-      <div className="grid grid-cols-2 gap-6">
-        <div className="w-full h-96">
-          <ResponsiveContainer>
-            <PieChart>
-              <Pie
-                data={performance}
-                dataKey="Weight"
-                nameKey="Ticker"
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={120}
-                label={({ name, Weight }) => `${name}: ${Weight.toFixed(1)}%`}
-              >
-                {performance.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.Color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
+      <div className="container mx-auto px-6 relative z-10">
+        {/* Title */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            Portfolio Dashboard
+          </h2>
+          <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            The breakdown of the performance of my stock portfolio.
+          </p>
+        </motion.div>
+
+        {/* Date picker */}
+        <div className="flex justify-center mb-12">
+          <DatePicker
+            value={asOfDate}
+            onChange={d => setAsOfDate(d)}
+            className="!bg-slate-800/70 !border-slate-700 !text-white rounded-lg shadow-inner"
+          />
         </div>
 
-        {/* Stocks Table */}
-        <table className="table-auto border-collapse border border-gray-300 w-full">
-          <thead>
-            <tr>
-              <th className="border px-2 py-1">Ticker</th>
-              <th className="border px-2 py-1">Current Price</th>
-              <th className="border px-2 py-1">Lifetime Gain</th>
-              <th className="border px-2 py-1">30D Gain</th>
-            </tr>
-          </thead>
-          <tbody>
-            {performance
-              .slice()
-              .sort((a, b) => a.Ticker.localeCompare(b.Ticker))
-              .map((row, idx) => (
-                <tr key={idx}>
-                  <td className="border px-2 py-1">
-                    <div className="flex items-center space-x-2">
-                      <img
-                        src={row.LogoUrl}
-                        alt={`${row.Company} logo`}
-                        className="w-5 h-5"
-                        onError={e => { e.currentTarget.style.display = 'none'; }}
-                      />
-                      <span>{row.Ticker}</span>
-                    </div>
-                  </td>
-                  <td className="border px-2 py-1">{row.CurrentPrice}</td>
-                  <td className="border px-2 py-1">{row.LifetimeReturn}%</td>
-                  <td className="border px-2 py-1">
-                    {row.MonthlyReturn != null && row.MonthlyReturn !== ""
-                      ? `${row.MonthlyReturn}%`
-                      : `${row.LifetimeReturn}%`}
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+        <div className="grid lg:grid-cols-2 gap-12">
+          {/* Pie Chart Card */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 hover:border-blue-500/50 transition-all duration-300"
+          >
+            <h3 className="text-2xl font-bold text-white mb-6">Allocation</h3>
+            <div className="w-full h-96">
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie
+                    data={performance}
+                    dataKey="Weight"
+                    nameKey="Ticker"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={120}
+                    label={({ name, Weight }) => `${name}: ${Weight.toFixed(1)}%`}
+                  >
+                    {performance.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.Color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+
+          {/* Holdings Table Card */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-300"
+          >
+            <h3 className="text-2xl font-bold text-white mb-6">Holdings</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-slate-300">
+                <thead>
+                  <tr className="text-slate-400 text-sm uppercase tracking-wide border-b border-slate-700/50">
+                    <th className="pb-3">Ticker</th>
+                    <th className="pb-3">Current</th>
+                    <th className="pb-3">Lifetime</th>
+                    <th className="pb-3">30D</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700/50">
+                  {performance
+                    .slice()
+                    .sort((a, b) => a.Ticker.localeCompare(b.Ticker))
+                    .map((row, idx) => (
+                      <tr key={idx} className="hover:bg-slate-700/30 transition">
+                        <td className="py-3 flex items-center gap-3 font-medium text-white">
+                          <img
+                            src={row.LogoUrl}
+                            alt={`${row.Company} logo`}
+                            className="w-6 h-6"
+                            onError={e => { e.currentTarget.style.display = 'none'; }}
+                          />
+                          {row.Ticker}
+                        </td>
+                        <td className="py-3">${row.CurrentPrice}</td>
+                        <td
+                          className={`py-3 ${
+                            row.LifetimeReturn >= 0 ? "text-green-400" : "text-red-400"
+                          }`}
+                        >
+                          {row.LifetimeReturn}%
+                        </td>
+                        <td
+                          className={`py-3 ${
+                            row.MonthlyReturn >= 0 ? "text-green-400" : "text-red-400"
+                          }`}
+                        >
+                          {row.MonthlyReturn != null && row.MonthlyReturn !== ""
+                            ? `${row.MonthlyReturn}%`
+                            : `${row.LifetimeReturn}%`}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
