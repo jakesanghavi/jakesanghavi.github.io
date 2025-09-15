@@ -115,17 +115,21 @@ async function getPerformance(ticker, costBasis, buyDate, asOfDate) {
     const hist = await res.json();
 
     if (!hist.quotes || hist.quotes.length === 0)
-      return { lifetime: null, monthly: null, lastPrice: null };
+      return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
 
     const lastPrice = hist.quotes[hist.quotes.length - 1].close;
     const lifetime = (lastPrice / costBasis - 1) * 100;
 
+    const years = (asOfDate - buyDate) / (1000 * 60 * 60 * 24 * 365.25);
+    const cagr =
+      years > 0
+        ? (Math.pow(lastPrice / costBasis, 1 / years) - 1) * 100
+        : lifetime;
+
     const thirtyDaysAgo = asOfDate.subtract(30, 'day');
     const perfStart = buyDate > thirtyDaysAgo.toDate() ? buyDate : thirtyDaysAgo.toDate();
-
     const histMonth = hist.quotes.filter(q => new Date(q.date) >= perfStart);
 
-    // Decide what the starting basis should be
     const basisPrice =
       buyDate > thirtyDaysAgo.toDate() && costBasis
         ? costBasis
@@ -138,11 +142,11 @@ async function getPerformance(ticker, costBasis, buyDate, asOfDate) {
         ? ((histMonth[histMonth.length - 1].close / basisPrice) - 1) * 100
         : null;
 
-    return { lifetime, monthly, lastPrice };
+    return { lifetime, monthly, lastPrice, cagr };
 
   } catch (err) {
     console.error(err);
-    return { lifetime: null, monthly: null, lastPrice: null };
+    return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
   }
 }
 
@@ -169,6 +173,7 @@ export default function MyInvestments() {
           CurrentPrice: perf.lastPrice?.toFixed(2),
           LifetimeReturn: perf.lifetime ? perf.lifetime.toFixed(2) : null,
           MonthlyReturn: perf.monthly ? perf.monthly.toFixed(2) : null,
+          CAGR: perf.cagr ? perf.cagr.toFixed(2) : null,
           Value: h.Shares * (perf.lastPrice || 0),
           Color: h.Lots[0].Color,
           LogoUrl: h.Lots[0].LogoUrl
@@ -224,7 +229,7 @@ export default function MyInvestments() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 hover:border-blue-500/50 transition-all duration-300"
+            className="bg-gradient-to-r from-blue-400/40 to-purple-400/40 backdrop-blur-md rounded-2xl p-8 border border-slate-600/40 hover:border-blue-400/50 transition-all duration-300"
           >
             <h3 className="text-2xl font-bold text-white mb-6">Allocation</h3>
             <div className="w-full h-96">
@@ -266,6 +271,7 @@ export default function MyInvestments() {
                     <th className="pb-3">Ticker</th>
                     <th className="pb-3">Current</th>
                     <th className="pb-3">Lifetime</th>
+                    <th className="pb-3">CAGR</th>
                     <th className="pb-3">30D</th>
                   </tr>
                 </thead>
@@ -286,16 +292,22 @@ export default function MyInvestments() {
                         </td>
                         <td className="py-3">${row.CurrentPrice}</td>
                         <td
-                          className={`py-3 ${
-                            row.LifetimeReturn >= 0 ? "text-green-400" : "text-red-400"
-                          }`}
+                          className={`py-3 ${row.LifetimeReturn >= 0 ? "text-green-400" : "text-red-400"
+                            }`}
                         >
                           {row.LifetimeReturn}%
                         </td>
                         <td
-                          className={`py-3 ${
-                            row.MonthlyReturn >= 0 ? "text-green-400" : "text-red-400"
-                          }`}
+                          className={`py-3 ${row.CAGR >= 0 ? "text-green-400" : "text-red-400"
+                            }`}
+                        >
+                          {row.CAGR != null && row.CAGR !== ""
+                            ? `${row.CAGR}%`
+                            : `${row.CAGR}%`}
+                        </td>
+                        <td
+                          className={`py-3 ${row.MonthlyReturn >= 0 ? "text-green-400" : "text-red-400"
+                            }`}
                         >
                           {row.MonthlyReturn != null && row.MonthlyReturn !== ""
                             ? `${row.MonthlyReturn}%`
