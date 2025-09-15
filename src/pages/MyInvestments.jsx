@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import M2 from "dayjs";
 import { ROUTE } from '../../constants';
 import { motion } from "framer-motion";
+import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
@@ -53,8 +54,6 @@ const df = rawData.map(([Action, Company, Ticker, dateStr, Price, Shares, Color,
     LogoUrl: LogoUrl,
   };
 });
-
-console.log(df)
 
 // Get currently owned stock amount by ticker and date
 function getOpenLots(ticker, asOfDate) {
@@ -157,6 +156,7 @@ export default function MyInvestments() {
         results.push({
           Ticker: h.Ticker,
           Shares: h.Shares,
+          Lots: h.Lots,
           CurrentPrice: perf.lastPrice?.toFixed(2),
           LifetimeReturn: perf.lifetime ? perf.lifetime.toFixed(2) : null,
           MonthlyReturn: perf.monthly ? perf.monthly.toFixed(2) : null,
@@ -236,7 +236,7 @@ export default function MyInvestments() {
                       <Cell key={`cell-${index}`} fill={entry.Color} />
                     ))}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip content={<PieTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
