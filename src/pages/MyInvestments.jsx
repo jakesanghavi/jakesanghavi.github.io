@@ -39,17 +39,34 @@ const rawData = [
   ["BUY", "SPY", "SPY", "2021-03-05", 376.7, 0.004, '#4e9942']
 ];
 
-// Map to DF
-const df = rawData.map(([Action, Company, Ticker, dateStr, Price, Shares, Color]) => ({
-  Action,
-  Company,
-  Ticker,
-  Date: new Date(dateStr),
-  Price,
-  Shares,
-  Color
-}));
+const toARGB = (hex, alpha = '23') => {
+  const clean = hex.replace('#', '');
+  if (clean.length !== 6) {
+    throw new Error(`Invalid hex color: ${hex}`);
+  }
+  return `${alpha}${clean}`.toUpperCase();
+};
 
+// Map to DF
+const df = rawData.map(([Action, Company, Ticker, dateStr, Price, Shares, Color]) => {
+  // normalize company name for simple-icons slug
+  const slug = Company.toLowerCase().replace(/\s+/g, '-');
+  const argbColor = toARGB(Color);
+  const logoUrl = `https://api.iconify.design/simple-icons:${slug}.svg?color=%${argbColor}`;
+
+  return {
+    Action,
+    Company,
+    Ticker,
+    Date: new Date(dateStr),
+    Price,
+    Shares,
+    Color,
+    LogoUrl: logoUrl,
+  };
+});
+
+console.log(df)
 
 // Get currently owned stock amount by ticker and date
 function getOpenLots(ticker, asOfDate) {
@@ -57,7 +74,7 @@ function getOpenLots(ticker, asOfDate) {
   let lots = [];
   for (let row of txns) {
     if (row.Action === "BUY") {
-      lots.push({ date: row.Date, shares: row.Shares, price: row.Price, Color: row.Color });
+      lots.push({ date: row.Date, shares: row.Shares, price: row.Price, Color: row.Color, LogoUrl: row.LogoUrl });
     } else {
       let sharesToSell = row.Shares;
       while (sharesToSell > 0 && lots.length > 0) {
@@ -106,12 +123,22 @@ async function getPerformance(ticker, costBasis, buyDate, asOfDate) {
     const perfStart = buyDate > thirtyDaysAgo.toDate() ? buyDate : thirtyDaysAgo.toDate();
 
     const histMonth = hist.quotes.filter(q => new Date(q.date) >= perfStart);
+
+    // Decide what the starting basis should be
+    const basisPrice =
+      buyDate > thirtyDaysAgo.toDate() && costBasis
+        ? costBasis
+        : histMonth.length > 0
+          ? histMonth[0].close
+          : null;
+
     const monthly =
-      histMonth.length > 1
-        ? (histMonth[histMonth.length - 1].close / histMonth[0].close - 1) * 100
+      histMonth.length > 0 && basisPrice
+        ? ((histMonth[histMonth.length - 1].close / basisPrice) - 1) * 100
         : null;
 
     return { lifetime, monthly, lastPrice };
+
   } catch (err) {
     console.error(err);
     return { lifetime: null, monthly: null, lastPrice: null };
@@ -144,7 +171,8 @@ export default function MyInvestments() {
           LifetimeReturn: perf.lifetime ? perf.lifetime.toFixed(2) : null,
           MonthlyReturn: perf.monthly ? perf.monthly.toFixed(2) : null,
           Value: h.Shares * (perf.lastPrice || 0),
-          Color: h.Lots[0].Color
+          Color: h.Lots[0].Color,
+          LogoUrl: h.Lots[0].LogoUrl
         });
 
         results = results.map(r => ({
@@ -206,11 +234,21 @@ export default function MyInvestments() {
           </thead>
           <tbody>
             {performance
-              .slice() // create a shallow copy so we don't mutate state
+              .slice()
               .sort((a, b) => a.Ticker.localeCompare(b.Ticker))
               .map((row, idx) => (
                 <tr key={idx}>
-                  <td className="border px-2 py-1">{row.Ticker}</td>
+                  <td className="border px-2 py-1">
+                    <div className="flex items-center space-x-2">
+                      <img
+                        src={row.LogoUrl}
+                        alt={`${row.Company} logo`}
+                        className="w-5 h-5"
+                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                      />
+                      <span>{row.Ticker}</span>
+                    </div>
+                  </td>
                   <td className="border px-2 py-1">{row.CurrentPrice}</td>
                   <td className="border px-2 py-1">{row.LifetimeReturn}%</td>
                   <td className="border px-2 py-1">
