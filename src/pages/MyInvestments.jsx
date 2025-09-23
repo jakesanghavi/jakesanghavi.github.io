@@ -105,6 +105,8 @@ async function getPerformance(ticker, lots, asOfDate) {
     if (!hist.quotes || hist.quotes.length === 0)
       return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
 
+    const lifetime = ((lastPrice / (lots.reduce((s, l) => s + l.shares * l.price, 0) / lots.reduce((s, l) => s + l.shares, 0)) - 1) * 100)
+
     const lastPrice = hist.quotes[hist.quotes.length - 1].close;
 
     // Weighted CAGR
@@ -119,16 +121,23 @@ async function getPerformance(ticker, lots, asOfDate) {
     // Monthly return (last 30 days or since purchase)
     const thirtyDaysAgo = asOfDate.subtract(30, 'day').toDate();
     const perfStart = new Date(Math.max(...lots.map(l => l.date), thirtyDaysAgo));
-    const histMonth = hist.quotes.filter(q => new Date(q.date) >= perfStart);
-    const basisPrice = histMonth.length > 0 ? histMonth[0].close : null;
-    const monthly =
-      histMonth.length > 0 && basisPrice
-        ? ((histMonth[histMonth.length - 1].close / basisPrice) - 1) * 100
-        : null;
+    let monthly = 0;
+
+    if (perfStart > thirtyDaysAgo) {
+      monthly = lifetime;
+    }
+    else {
+      const histMonth = hist.quotes.filter(q => new Date(q.date) >= perfStart);
+      const basisPrice = histMonth.length > 0 ? histMonth[0].close : null;
+      monthly =
+        histMonth.length > 0 && basisPrice
+          ? ((histMonth[histMonth.length - 1].close / basisPrice) - 1) * 100
+          : null;
+    }
 
     return {
       lastPrice,
-      lifetime: ((lastPrice / (lots.reduce((s, l) => s + l.shares * l.price, 0) / lots.reduce((s, l) => s + l.shares, 0)) - 1) * 100),
+      lifetime,
       monthly,
       cagr: weightedCAGR * 100
     };
