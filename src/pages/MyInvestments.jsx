@@ -104,10 +104,9 @@ async function getPerformance(ticker, lots, asOfDate) {
 
     if (!hist.quotes || hist.quotes.length === 0)
       return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
-
-    const lifetime = ((lastPrice / (lots.reduce((s, l) => s + l.shares * l.price, 0) / lots.reduce((s, l) => s + l.shares, 0)) - 1) * 100)
-
+    
     const lastPrice = hist.quotes[hist.quotes.length - 1].close;
+    const lifetime = ((lastPrice / (lots.reduce((s, l) => s + l.shares * l.price, 0) / lots.reduce((s, l) => s + l.shares, 0)) - 1) * 100)
 
     // Weighted CAGR
     const totalValue = lots.reduce((sum, l) => sum + l.shares * lastPrice, 0);
