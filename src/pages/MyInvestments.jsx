@@ -106,41 +106,45 @@ async function getPerformance(ticker, lots, asOfDate) {
 
     if (!hist.quotes || hist.quotes.length === 0)
       return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
-    
-    const lastPrice = hist.quotes[hist.quotes.length - 1].close;
-    const lifetime = ((lastPrice / (lots.reduce((s, l) => s + l.shares * l.price, 0) / lots.reduce((s, l) => s + l.shares, 0)) - 1) * 100)
 
-    // Weighted CAGR
+    const lastPrice = hist.quotes[hist.quotes.length - 1].close;
     const totalValue = lots.reduce((sum, l) => sum + l.shares * lastPrice, 0);
+    const lifetime = lots.reduce((sum, l) => {
+      const lotReturn = (lastPrice - l.price) / l.price;
+      const lotWeight = (l.shares * lastPrice) / totalValue;
+      return sum + lotReturn * lotWeight;
+    }, 0) * 100;
+
     const weightedCAGR = lots.reduce((sum, l) => {
-      const years = (asOfDate.toDate() - l.date) / (1000 * 60 * 60 * 24 * 365.25);
+      const years = (asOfDate - l.date) / (1000 * 60 * 60 * 24 * 365.25);
       const lotCAGR = years > 0 ? Math.pow(lastPrice / l.price, 1 / years) - 1 : 0;
       const lotWeight = (l.shares * lastPrice) / totalValue;
       return sum + lotCAGR * lotWeight;
-    }, 0);
+    }, 0) * 100;
 
     // Monthly return (last 30 days or since purchase)
-    const thirtyDaysAgo = asOfDate.subtract(30, 'day').toDate();
-    const perfStart = new Date(Math.max(...lots.map(l => l.date), thirtyDaysAgo));
-    let monthly = 0;
+    const thirtyDaysAgo = asOfDate.subtract(1, 'month').subtract(1, 'day').toDate();
+    // const perfStart = new Date(Math.max(...lots.map(l => l.date), thirtyDaysAgo));
+    let monthly = lots.reduce((sum, l) => {
+      // Determine start date for this lot
+      const startDate = l.date > thirtyDaysAgo ? l.date : thirtyDaysAgo;
+      console.log(l.date)
 
-    if (perfStart > thirtyDaysAgo) {
-      monthly = lifetime;
-    }
-    else {
-      const histMonth = hist.quotes.filter(q => new Date(q.date) >= perfStart);
-      const basisPrice = histMonth.length > 0 ? histMonth[0].close : null;
-      monthly =
-        histMonth.length > 0 && basisPrice
-          ? ((histMonth[histMonth.length - 1].close / basisPrice) - 1) * 100
-          : null;
-    }
+      // Find closest historical price on or after startDate
+      const startHist = hist.quotes.find(q => new Date(q.date) >= startDate);
+      console.log(startHist)
+      const startPrice = startHist ? startHist.close : l.price;
+
+      const lotReturn = (lastPrice - startPrice) / startPrice;
+      const lotWeight = (l.shares * lastPrice) / totalValue;
+      return sum + lotReturn * lotWeight;
+    }, 0) * 100;
 
     return {
       lastPrice,
       lifetime,
       monthly,
-      cagr: weightedCAGR * 100
+      cagr: weightedCAGR
     };
   } catch (err) {
     console.error(err);
@@ -271,7 +275,7 @@ export default function MyInvestments() {
                     <th className="pb-3">Current</th>
                     <th className="pb-3">Lifetime</th>
                     <th className="pb-3">CAGR</th>
-                    <th className="pb-3">30D</th>
+                    <th className="pb-3">1M</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/50">
@@ -314,6 +318,31 @@ export default function MyInvestments() {
                         </td>
                       </tr>
                     ))}
+                  {performance.length > 0 && (() => {
+                    const totalValue = performance.reduce((sum, p) => sum + p.Value, 0);
+
+                    const overallLifetime = performance.reduce((sum, p) => sum + (p.LifetimeReturn || 0) * p.Value / totalValue, 0);
+                    const overallCAGR = performance.reduce((sum, p) => sum + (p.CAGR || 0) * p.Value / totalValue, 0);
+                    const overall30D = performance.reduce((sum, p) => sum + (p.MonthlyReturn || 0) * p.Value / totalValue, 0);
+
+                    return (
+                      <tr className="bg-slate-700/40 font-semibold border-t border-slate-600/50">
+                        <td className="py-3 text-white">Overall Portfolio</td>
+                        <td className="py-3 text-slate-300">—</td>
+                        <td className={`py-3 text-white`}>
+                          {/* {overallLifetime.toFixed(2)}% */}
+                          —
+                        </td>
+                        <td className={`py-3 text-white`}>
+                          {/* {overallCAGR.toFixed(2)}% */}
+                          —
+                        </td>
+                        <td className={`py-3 ${overall30D >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {overall30D.toFixed(2)}%
+                        </td>
+                      </tr>
+                    );
+                  })()}
                 </tbody>
               </table>
             </div>
