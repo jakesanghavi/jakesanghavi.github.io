@@ -8,6 +8,7 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
+  ["BUY", "Zeta", "ZETA", "2025-01-07", 23.39, 0.0215, '#6535ab', "https://api.iconify.design/token:zeta-chain.svg?color=%236535AB", "Checking"],
   ["BUY", "Amazon", "AMZN", "2025-10-23", 221.07, 0.0035, '#ff9c1b', "https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9C1B", "Checking"],
   ["BUY", "Adobe", "ADBE", "2025-09-12", 348.04, 0.002, '#ec1f11', "https://api.iconify.design/simple-icons:adobe.svg?color=%23EC1F11", "Checking"],
   ["SELL", "Palantir", "PLTR", "2025-08-29", 156.93, 0.0033, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000", "Checking"],
@@ -32,7 +33,7 @@ const rawData = [
   ["BUY", "Microsoft", "MSFT", "2023-11-20", 375.08, 0.001, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Checking"],
   ["BUY", "Apple", "AAPL", "2023-07-14", 190.72, 0.001, '#080808', "https://api.iconify.design/simple-icons:apple.svg?color=%23080808", "Checking"],
   ["BUY", "Palantir", "PLTR", "2023-06-12", 15.77, 0.0095117, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000", "Checking"],
-  ["BUY", "SPY", "SPY", "2023-06-01", 421.65, 0.003, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg", "Checking"],
+  ["BUY", "SPY", "SPY", "2023-06-01", 421.65, 0.0035, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg", "Checking"],
   ["BUY", "Nvidia", "NVDA", "2023-06-01", 39.434, 0.005, '#7dba17', "https://api.iconify.design/simple-icons:nvidia.svg?color=%237DBA17", "Checking"],
   ["BUY", "SPY", "SPY", "2022-07-07", 386.78, 0.004, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg", "Checking"],
   ["BUY", "SPY", "SPY", "2022-01-10", 458.2, 0.0033, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg", "Checking"],
@@ -93,6 +94,45 @@ function getHoldings(asOfDate) {
   }).filter(Boolean);
 }
 
+async function calculateLifetimeReturn(asOfDate) {
+  let totalCurrentValue = 0;
+  let totalPurchases = 0;
+  let totalRealizedSales = 0;
+
+  const tickers = [...new Set(df.map(d => d.Ticker))];
+
+  for (let ticker of tickers) {
+    const lots = getOpenLots(ticker, asOfDate);
+
+    // Current holdings value (assume last price is current market price)
+    const res = await fetch(
+      `${ROUTE}/api/stocks/${ticker}?start=${asOfDate.toISOString()}&end=${asOfDate.toISOString()}`
+    );
+    const hist = await res.json();
+
+    if (!hist.quotes || hist.quotes.length === 0)
+      return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
+
+    const lastPrice = hist.quotes[hist.quotes.length - 1].close;
+    const currentValue = lots.reduce((sum, l) => sum + l.shares * lastPrice, 0);
+    totalCurrentValue += currentValue;
+
+    // Total purchases up to date
+    const purchases = df
+      .filter(d => d.Ticker === ticker && d.Action === "BUY" && d.Date <= asOfDate)
+      .reduce((sum, d) => sum + d.Shares * d.Price, 0);
+    totalPurchases += purchases;
+
+    // Realized sales
+    const sales = df
+      .filter(d => d.Ticker === ticker && d.Action === "SELL" && d.Date <= asOfDate)
+      .reduce((sum, d) => sum + d.Shares * d.Price, 0);
+    totalRealizedSales += sales;
+  }
+
+  return 100 * (totalCurrentValue - totalPurchases + totalRealizedSales) / (totalPurchases);
+}
+
 // Call to Yahoo finance to get historical performance
 // for a ticket
 async function getPerformance(ticker, lots, asOfDate) {
@@ -124,16 +164,31 @@ async function getPerformance(ticker, lots, asOfDate) {
 
     // Monthly return (last 30 days or since purchase)
     const thirtyDaysAgo = asOfDate.subtract(1, 'month').subtract(1, 'day').toDate();
+    const oneYearAgo = asOfDate.subtract(1, 'year').toDate();
     // const perfStart = new Date(Math.max(...lots.map(l => l.date), thirtyDaysAgo));
     let monthly = lots.reduce((sum, l) => {
       // Determine start date for this lot
       const startDate = l.date > thirtyDaysAgo ? l.date : thirtyDaysAgo;
-      console.log(l.date)
 
       // Find closest historical price on or after startDate
       const startHist = hist.quotes.find(q => new Date(q.date) >= startDate);
-      console.log(startHist)
       const startPrice = startHist ? startHist.close : l.price;
+
+      const lotReturn = (lastPrice - startPrice) / startPrice;
+      const lotWeight = (l.shares * lastPrice) / totalValue;
+      return sum + lotReturn * lotWeight;
+    }, 0) * 100;
+
+    let yearly = lots.reduce((sum, l) => {
+      const startDate = l.date > oneYearAgo ? l.date : oneYearAgo;
+      let startPrice;
+
+      if (l.date > oneYearAgo) {
+        startPrice = l.price;
+      } else {
+        const startHist = hist.quotes.find(q => new Date(q.date) >= startDate);
+        startPrice = startHist ? startHist.close : l.price;
+      }
 
       const lotReturn = (lastPrice - startPrice) / startPrice;
       const lotWeight = (l.shares * lastPrice) / totalValue;
@@ -144,17 +199,19 @@ async function getPerformance(ticker, lots, asOfDate) {
       lastPrice,
       lifetime,
       monthly,
+      yearly,
       cagr: weightedCAGR
     };
   } catch (err) {
     console.error(err);
-    return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
+    return { lifetime: null, monthly: null, yearly: null, lastPrice: null, cagr: null };
   }
 }
 
 export default function MyInvestments() {
   const [asOfDate, setAsOfDate] = useState(M2());
   const [performance, setPerformance] = useState([]);
+  const [lifetimeReturn, setLifetimeReturn] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -176,6 +233,7 @@ export default function MyInvestments() {
           CurrentPrice: perf.lastPrice?.toFixed(2),
           LifetimeReturn: perf.lifetime ? perf.lifetime.toFixed(2) : null,
           MonthlyReturn: perf.monthly ? perf.monthly.toFixed(2) : null,
+          AnnualReturn: perf.yearly ? perf.yearly.toFixed(2) : null,
           CAGR: perf.cagr ? perf.cagr.toFixed(2) : null,
           Value: h.Shares * (perf.lastPrice || 0),
           Color: h.Lots[0].Color,
@@ -191,6 +249,8 @@ export default function MyInvestments() {
       }
 
       setPerformance(results);
+      const ltr = await calculateLifetimeReturn(asOfDate);
+      setLifetimeReturn(ltr);
     }
     load();
   }, [asOfDate]);
@@ -276,6 +336,7 @@ export default function MyInvestments() {
                     <th className="pb-3">Lifetime</th>
                     <th className="pb-3">CAGR</th>
                     <th className="pb-3">1M</th>
+                    <th className="pb-3">1Y</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/50">
@@ -316,14 +377,24 @@ export default function MyInvestments() {
                             ? `${row.MonthlyReturn}%`
                             : `${row.LifetimeReturn}%`}
                         </td>
+                        <td
+                          className={`py-3 ${row.AnnualReturn >= 0 ? "text-green-400" : "text-red-400"
+                            }`}
+                        >
+                          {row.AnnualReturn != null && row.AnnualReturn !== ""
+                            ? `${row.AnnualReturn}%`
+                            : `${row.LifetimeReturn}%`}
+                        </td>
                       </tr>
                     ))}
                   {performance.length > 0 && (() => {
                     const totalValue = performance.reduce((sum, p) => sum + p.Value, 0);
 
-                    const overallLifetime = performance.reduce((sum, p) => sum + (p.LifetimeReturn || 0) * p.Value / totalValue, 0);
+                    // const overallLifetime = performance.reduce((sum, p) => sum + (p.LifetimeReturn || 0) * p.Value / totalValue, 0);
+                    const overallLifetime = lifetimeReturn != null ? lifetimeReturn : 0;
                     const overallCAGR = performance.reduce((sum, p) => sum + (p.CAGR || 0) * p.Value / totalValue, 0);
                     const overall30D = performance.reduce((sum, p) => sum + (p.MonthlyReturn || 0) * p.Value / totalValue, 0);
+                    const overall1Y = performance.reduce((sum, p) => sum + (p.AnnualReturn || 0) * p.Value / totalValue, 0);
 
                     return (
                       <tr className="bg-slate-700/40 font-semibold border-t border-slate-600/50">
@@ -339,6 +410,9 @@ export default function MyInvestments() {
                         </td>
                         <td className={`py-3 ${overall30D >= 0 ? "text-green-400" : "text-red-400"}`}>
                           {overall30D.toFixed(2)}%
+                        </td>
+                        <td className={`py-3 ${overall1Y >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {overall1Y.toFixed(2)}%
                         </td>
                       </tr>
                     );
