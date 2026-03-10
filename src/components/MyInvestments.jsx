@@ -61,6 +61,77 @@ const df = rawData.map(([Action, Company, Ticker, dateStr, Price, Shares, Color,
   LogoUrl
 }));
 
+function xirr(cashflows, guess = 0.1) {
+  const maxIter = 100;
+  const tol = 1e-6;
+
+  // sort cashflows by date
+  cashflows = [...cashflows].sort((a, b) => a.date - b.date);
+
+  const t0 = cashflows[0].date;
+
+  const npv = rate =>
+    cashflows.reduce((sum, cf) => {
+      const years = (cf.date - t0) / (1000 * 60 * 60 * 24 * 365.25);
+      return sum + cf.amount / Math.pow(1 + rate, years);
+    }, 0);
+
+  const dnpv = rate =>
+    cashflows.reduce((sum, cf) => {
+      const years = (cf.date - t0) / (1000 * 60 * 60 * 24 * 365.25);
+      return sum - (years * cf.amount) / Math.pow(1 + rate, years + 1);
+    }, 0);
+
+  let rate = guess;
+
+  const hasPos = cashflows.some(c => c.amount > 0);
+  const hasNeg = cashflows.some(c => c.amount < 0);
+  if (!hasPos || !hasNeg) return 0;
+
+  for (let i = 0; i < maxIter; i++) {
+    const value = npv(rate);
+    const deriv = dnpv(rate);
+
+    if (Math.abs(deriv) < 1e-10) break; // guard
+
+    let newRate = rate - value / deriv;
+    if (newRate < -0.9999) newRate = -0.9999; // clamp
+
+    if (Math.abs(newRate - rate) < tol) return newRate;
+
+    rate = newRate;
+  }
+
+  return rate;
+}
+
+function computePortfolioXIRR(asOfDate, priceMap) {
+  const cashflows = [];
+
+  for (let t of df) {
+    if (t.Date > asOfDate) continue;
+
+    const value = t.Price * t.Shares;
+
+    if (t.Action === "BUY") cashflows.push({ date: t.Date, amount: -value });
+    if (t.Action === "SELL") cashflows.push({ date: t.Date, amount: value });
+  }
+
+  for (let ticker of Object.keys(priceMap)) {
+    const openLots = getOpenLots(ticker, asOfDate);
+    const shares = openLots.reduce((s, l) => s + l.shares, 0);
+    if (!shares) continue;
+
+    cashflows.push({
+      date: asOfDate,
+      amount: shares * priceMap[ticker]
+    });
+  }
+
+  return xirr(cashflows) * 100;
+}
+
+
 // Get open lots only (for pie chart, table, 1M return)
 function getOpenLots(ticker, asOfDate) {
   const txns = df
@@ -128,32 +199,65 @@ async function fetchOpenLotsPrice(ticker, earliestDate, asOfDate) {
 }
 
 // Calculate lifetime return & CAGR for all lots
-function computeLifetimeMetrics(lots, asOfDate) {
-  if (!lots || lots.length === 0) return { lifetime: 0, cagr: 0 };
+function computeLifetimeMetrics(ticker, asOfDate, lastPrice) {
+  const txns = df
+    .filter(d => d.Ticker === ticker && d.Date <= asOfDate)
+    .sort((a, b) => a.Date - b.Date);
 
-  // Use exitPrice: closed lots use sellPrice, open lots use lastPrice (must be provided)
-  const totalValue = lots.reduce((sum, l) => sum + l.shares * l.exitPrice, 0);
+  if (!txns.length) return { lifetime: 0, xirr: 0 };
 
-  const lifetime = lots.reduce((sum, l) => {
-    const lotReturn = (l.exitPrice - l.price) / l.price;
-    const lotWeight = (l.shares * l.exitPrice) / totalValue;
-    return sum + lotReturn * lotWeight;
-  }, 0) * 100;
+  // Track open lots and closed lots
+  let openLots = [];
+  let cashflows = [];
 
-  const cagr = lots.reduce((sum, l) => {
-    const years = (asOfDate - l.date) / (1000 * 60 * 60 * 24 * 365.25);
-    const lotCAGR = years > 0 ? Math.pow(l.exitPrice / l.price, 1 / years) - 1 : 0;
-    const lotWeight = (l.shares * l.exitPrice) / totalValue;
-    return sum + lotCAGR * lotWeight;
-  }, 0) * 100;
+  for (let t of txns) {
+    const value = t.Price * t.Shares;
 
-  return { lifetime, cagr };
+    if (t.Action === "BUY") {
+      openLots.push({ date: t.Date, shares: t.Shares, price: t.Price });
+      cashflows.push({ date: t.Date, amount: -value });
+    } else if (t.Action === "SELL") {
+      let sharesToSell = t.Shares;
+      while (sharesToSell > 0 && openLots.length > 0) {
+        const lot = openLots[0];
+        const sellShares = Math.min(lot.shares, sharesToSell);
+        cashflows.push({ date: t.Date, amount: sellShares * t.Price });
+        lot.shares -= sellShares;
+        sharesToSell -= sellShares;
+        if (lot.shares === 0) openLots.shift();
+      }
+    }
+  }
+
+  // Add remaining open lots at lastPrice
+  for (let lot of openLots) {
+    cashflows.push({ date: asOfDate, amount: lot.shares * lastPrice });
+  }
+
+  // Lifetime return = (total value now + all sells − total buys) / total buys
+  const totalInvested = txns
+    .filter(t => t.Action === "BUY")
+    .reduce((sum, t) => sum + t.Price * t.Shares, 0);
+
+  const totalReturned = cashflows
+    .filter(c => c.amount > 0)
+    .reduce((sum, c) => sum + c.amount, 0);
+
+  const lifetime = ((totalReturned - totalInvested) / totalInvested) * 100;
+
+  // XIRR
+  const hasPos = cashflows.some(c => c.amount > 0);
+  const hasNeg = cashflows.some(c => c.amount < 0);
+  const rate = hasPos && hasNeg ? xirr(cashflows) * 100 : 0;
+
+  return { lifetime, xirr: rate };
 }
 
 // Component
 export default function MyInvestments() {
   const [asOfDate, setAsOfDate] = useState(M2());
   const [performance, setPerformance] = useState([]);
+  const [portfolioXIRR, setPortfolioXIRR] = useState(null);
 
   async function computeSPYCounterfactual(asOfDate) {
     const buys = df.filter(d => d.Action === "BUY" && d.Date <= asOfDate);
@@ -164,8 +268,8 @@ export default function MyInvestments() {
     const spyHist = await spyRes.json();
     if (!spyHist.quotes || spyHist.quotes.length === 0) return null;
 
-    let spyBatches = [];
     let totalInvested = 0;
+    const allCashflows = [];
 
     for (let buy of buys) {
       const priceEntry = spyHist.quotes.find(q => new Date(q.date) >= buy.Date);
@@ -176,31 +280,32 @@ export default function MyInvestments() {
       totalInvested += invested;
 
       const shares = invested / price;
-      spyBatches.push({ shares, buyDate: buy.Date, price, exitPrice: spyHist.quotes[spyHist.quotes.length - 1].close });
+
+      // Cashflows per lot for XIRR
+      const lotCashflows = [
+        { date: buy.Date, amount: -invested },
+        { date: asOfDate, amount: shares * spyHist.quotes[spyHist.quotes.length - 1].close }
+      ];
+
+      allCashflows.push(...lotCashflows);
     }
 
-    // Total value today
-    const totalValue = spyBatches.reduce((sum, batch) => sum + batch.shares * batch.exitPrice, 0);
+    // Portfolio XIRR now accurately accounts for timing
+    const portfolioXIRRValue = xirr(allCashflows) * 100;
 
-    // Weighted CAGR
-    const cagr = spyBatches.reduce((sum, l) => {
-      const years = (asOfDate - l.buyDate) / (1000 * 60 * 60 * 24 * 365.25);
-      const lotCAGR = years > 0 ? Math.pow(l.exitPrice / l.price, 1 / years) - 1 : 0;
-      const lotWeight = (l.shares * l.exitPrice) / totalValue;
-      return sum + lotCAGR * lotWeight;
-    }, 0) * 100;
-
-    const lifetimeReturn = ((totalValue - totalInvested) / totalInvested) * 100;
+    // Lifetime return: net invested vs final value
+    const finalValue = allCashflows.filter(c => c.amount > 0).reduce((sum, cf) => sum + cf.amount, 0);
+    const lifetimeReturn = ((finalValue - totalInvested) / totalInvested) * 100;
 
     return {
       Ticker: "SPY Counterfactual",
-      CurrentPrice: null, // dash in table
+      CurrentPrice: null,
       LifetimeReturn: lifetimeReturn.toFixed(2),
-      CAGR: cagr.toFixed(2),
-      MonthlyReturn: null, // dash in table
+      CAGR: portfolioXIRRValue.toFixed(2),
+      MonthlyReturn: null,
       Color: "#4e9942",
       LogoUrl: "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg",
-      Value: totalValue,
+      Value: finalValue,
       Weight: 0
     };
   }
@@ -236,12 +341,7 @@ export default function MyInvestments() {
           }, 0) * 100;
 
           // Lifetime return & CAGR using all lots (open + closed)
-          const { openLots: oLots, closedLots: cLots } = getAllLots(ticker, asOfDate);
-          const allLots = [
-            ...cLots.map(l => ({ ...l, exitPrice: l.sellPrice })),
-            ...oLots.map(l => ({ ...l, exitPrice: lastPrice }))
-          ];
-          const { lifetime, cagr } = computeLifetimeMetrics(allLots, asOfDate);
+          const { lifetime, xirr } = computeLifetimeMetrics(ticker, asOfDate, lastPrice);
 
           return {
             Ticker: ticker,
@@ -250,7 +350,7 @@ export default function MyInvestments() {
             CurrentPrice: lastPrice,
             LifetimeReturn: lifetime.toFixed(2),
             MonthlyReturn: monthly.toFixed(2),
-            CAGR: cagr.toFixed(2),
+            CAGR: xirr.toFixed(2),   // label unchanged but now XIRR
             Value: totalShares * lastPrice,
             Color: openLots[0].Color,
             LogoUrl: openLots[0].LogoUrl
@@ -260,6 +360,10 @@ export default function MyInvestments() {
 
       const cleaned = results.filter(Boolean);
       const totalValue = cleaned.reduce((sum, r) => sum + r.Value, 0);
+      const priceMap = {};
+      cleaned.forEach(r => priceMap[r.Ticker] = r.CurrentPrice);
+
+      setPortfolioXIRR(computePortfolioXIRR(asOfDate.toDate(), priceMap));
       cleaned.forEach(r => { r.Weight = (r.Value / totalValue) * 100; });
       cleaned.sort((a, b) => b.Weight - a.Weight);
 
@@ -332,7 +436,7 @@ export default function MyInvestments() {
                     <th className="pb-3">Ticker</th>
                     <th className="pb-3">Current</th>
                     <th className="pb-3">Lifetime</th>
-                    <th className="pb-3">CAGR</th>
+                    <th className="pb-3">XIRR</th>
                     <th className="pb-3">1M</th>
                   </tr>
                 </thead>
@@ -383,10 +487,6 @@ export default function MyInvestments() {
                       p.Ticker === "SPY Counterfactual" ? sum : sum + (p.LifetimeReturn || 0) * p.Value / totalValue, 0
                     );
 
-                    const overallCAGR = performance.reduce((sum, p) =>
-                      p.Ticker === "SPY Counterfactual" ? sum : sum + (p.CAGR || 0) * p.Value / totalValue, 0
-                    );
-
                     const overall30D = performance.reduce((sum, p) =>
                       p.Ticker === "SPY Counterfactual" ? sum : sum + (p.MonthlyReturn || 0) * p.Value / totalValue, 0
                     );
@@ -395,12 +495,18 @@ export default function MyInvestments() {
                       <tr className="bg-slate-600 font-semibold border-t border-slate-500">
                         <td className="py-3 text-white">Overall Portfolio</td>
                         <td className="py-3 text-slate-300">—</td>
+
+                        {/* Lifetime % calculated properly */}
                         <td className={`py-3 ${overallLifetime >= 0 ? "text-green-400" : "text-red-400"}`}>
                           {overallLifetime.toFixed(2)}%
                         </td>
-                        <td className={`py-3 ${overallCAGR >= 0 ? "text-green-400" : "text-red-400"}`}>
-                          {overallCAGR.toFixed(2)}%
+
+                        {/* XIRR is the gold standard CAGR */}
+                        <td className={`py-3 ${portfolioXIRR !== null && portfolioXIRR >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {portfolioXIRR?.toFixed(2)}%
                         </td>
+
+                        {/* 1M return */}
                         <td className={`py-3 ${overall30D >= 0 ? "text-green-400" : "text-red-400"}`}>
                           {overall30D.toFixed(2)}%
                         </td>
