@@ -34,4 +34,48 @@ app.get("/api/stocks/:ticker", async (req, res) => {
   }
 });
 
+app.get("/api/stocks/:ticker/financials", async (req, res) => {
+  const { ticker } = req.params;
+
+  try {
+    // Fetch full quote summary
+    const summary = await yahooFinance.quoteSummary(ticker, { modules: ['assetProfile', 'summaryProfile', 'financialData', 'defaultKeyStatistics', 'earnings'] });
+
+    const { assetProfile, summaryProfile, financialData, defaultKeyStatistics, earnings } = summary;
+
+    const cleanFinancials = {
+      fullTimeEmployees: summaryProfile?.fullTimeEmployees || assetProfile?.fullTimeEmployees || null,
+      marketCap: defaultKeyStatistics?.enterpriseValue ? +((defaultKeyStatistics.enterpriseValue / 1).toFixed(2)) : null,
+      forwardPE: defaultKeyStatistics?.forwardPE ? +defaultKeyStatistics.forwardPE.toFixed(2) : null,
+      profitMargins: financialData?.profitMargins ? +financialData.profitMargins.toFixed(2) : null,
+      sharesOutstanding: defaultKeyStatistics?.sharesOutstanding ? +defaultKeyStatistics.sharesOutstanding.toFixed(2) : null,
+      priceToBook: defaultKeyStatistics?.priceToBook ? +defaultKeyStatistics.priceToBook.toFixed(2) : null,
+      currentPrice: financialData?.currentPrice ? +financialData.currentPrice.toFixed(2) : null,
+      targetHighPrice: financialData?.targetHighPrice ? +financialData.targetHighPrice.toFixed(2) : null,
+      targetLowPrice: financialData?.targetLowPrice ? +financialData.targetLowPrice.toFixed(2) : null,
+      targetMedianPrice: financialData?.targetMedianPrice
+        ? +financialData.targetMedianPrice.toFixed(2)
+        : financialData?.targetMeanPrice
+          ? +financialData.targetMeanPrice.toFixed(2)
+          : null,
+      recommendationKey: financialData?.recommendationKey || null,
+      debtToEquity: financialData?.debtToEquity ? +financialData.debtToEquity.toFixed(2) : null,
+      enterpriseToEbitda: defaultKeyStatistics?.enterpriseToEbitda ? +defaultKeyStatistics.enterpriseToEbitda.toFixed(2) : null,
+      earnings: earnings?.earningsChart?.quarterly?.map(q => ({
+        date: q.date,
+        actual: q.actual ? +q.actual.toFixed(2) : null,
+        estimate: q.estimate ? +q.estimate.toFixed(2) : null,
+        surprisePct: q.actual && q.estimate ? +(((q.actual - q.estimate) / q.estimate) * 100).toFixed(2) : null
+      })) || [],
+      financialsChart: earnings?.financialsChart || {}
+    };
+
+    res.json(cleanFinancials);
+
+  } catch (err) {
+    console.error(`Failed to fetch ${ticker} financials:`, err);
+    res.status(500).json({ error: "Failed to fetch financials" });
+  }
+});
+
 app.listen(PORT, () => console.log("Stock backend running!"));
