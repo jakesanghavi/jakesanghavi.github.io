@@ -8,12 +8,17 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
+  ["SELL", "Fiserv", "FISV", "2026-03-09", 60.92, 0.003, '#ff6600', "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Fiserv_logo.svg/1280px-Fiserv_logo.svg.png", "Checking"],
+  ["BUY", "RobinHood", "HOOD", "2026-03-06", 77.88, 0.0125, '#ceff1a', "https://api.iconify.design/simple-icons:robinhood.svg?color=%23CEFF1A", "Checking"],
+  ["BUY", "Vertiv", "VRT", "2026-03-06", 248.61, 0.0015, '#1c1c1c', "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Vertiv_logo.svg/250px-Vertiv_logo.svg.png", "Checking"],
+  ["BUY", "Microsoft", "MSFT", "2026-01-30", 430.06, 0.0012, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Checking"],
+  ["BUY", "Nvidia", "NVDA", "2026-01-16", 187.12, 0.004, '#7dba17', "https://api.iconify.design/simple-icons:nvidia.svg?color=%237DBA17", "Checking"],
   ["BUY", "Zeta", "ZETA", "2025-01-07", 23.39, 0.0215, '#6535ab', "https://api.iconify.design/token:zeta-chain.svg?color=%236535AB", "Checking"],
   ["BUY", "Amazon", "AMZN", "2025-10-23", 221.07, 0.0035, '#ff9c1b', "https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9C1B", "Checking"],
   ["BUY", "Adobe", "ADBE", "2025-09-12", 348.04, 0.002, '#ec1f11', "https://api.iconify.design/simple-icons:adobe.svg?color=%23EC1F11", "Checking"],
   ["SELL", "Palantir", "PLTR", "2025-08-29", 156.93, 0.0033, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000", "Checking"],
   ["BUY", "ASML", "ASML", "2025-07-11", 801.06, 0.0006, '#0f248c', "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0ibQsZPMfxRsF3gl0CV6fK48yi6MXfOSR9g&s", "Checking"],
-  ["BUY", "Fiserv", "FI", "2025-07-09", 171.52, 0.003, '#ff6600', "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Fiserv_logo.svg/1280px-Fiserv_logo.svg.png", "Checking"],
+  ["BUY", "Fiserv", "FISV", "2025-07-09", 171.52, 0.003, '#ff6600', "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Fiserv_logo.svg/1280px-Fiserv_logo.svg.png", "Checking"],
   ["BUY", "Google", "GOOGL", "2025-07-09", 176.65, 0.003, '#fabf1d', "https://api.iconify.design/simple-icons:google.svg?color=%23FABF1D", "Checking"],
   ["BUY", "Google", "GOOGL", "2025-05-08", 153.97, 0.006, '#fabf1d', "https://api.iconify.design/simple-icons:google.svg?color=%23FABF1D", "Checking"],
   ["SELL", "Palantir", "PLTR", "2025-05-05", 124.42, 0.002, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000", "Checking"],
@@ -44,171 +49,237 @@ const rawData = [
   ["BUY", "SPY", "SPY", "2021-03-05", 376.7, 0.004, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg", "Checking"]
 ];
 
-// Map to DF
-const df = rawData.map(([Action, Company, Ticker, dateStr, Price, Shares, Color, LogoUrl]) => {
-  return {
-    Action,
-    Company,
-    Ticker,
-    Date: new Date(dateStr),
-    Price,
-    Shares,
-    Color,
-    LogoUrl: LogoUrl,
-  };
-});
+// Map to structured objects
+const df = rawData.map(([Action, Company, Ticker, dateStr, Price, Shares, Color, LogoUrl]) => ({
+  Action,
+  Company,
+  Ticker,
+  Date: new Date(dateStr),
+  Price,
+  Shares,
+  Color,
+  LogoUrl
+}));
 
-// Get currently owned stock amount by ticker and date
+// Get open lots only (for pie chart, table, 1M return)
 function getOpenLots(ticker, asOfDate) {
-  const txns = df.filter(d => d.Ticker === ticker && d.Date <= asOfDate).sort((a, b) => a.Date - b.Date);
-  let lots = [];
+  const txns = df
+    .filter(d => d.Ticker === ticker && d.Date <= asOfDate)
+    .sort((a, b) => a.Date - b.Date);
+
+  let openLots = [];
+
   for (let row of txns) {
     if (row.Action === "BUY") {
-      lots.push({ date: row.Date, shares: row.Shares, price: row.Price, Color: row.Color, LogoUrl: row.LogoUrl });
-    } else {
+      openLots.push({ date: row.Date, shares: row.Shares, price: row.Price, Color: row.Color, LogoUrl: row.LogoUrl });
+    } else if (row.Action === "SELL") {
       let sharesToSell = row.Shares;
-      while (sharesToSell > 0 && lots.length > 0) {
-        if (lots[0].shares <= sharesToSell) {
-          sharesToSell -= lots[0].shares;
-          lots.shift();
+      while (sharesToSell > 0 && openLots.length > 0) {
+        if (openLots[0].shares <= sharesToSell) {
+          sharesToSell -= openLots[0].shares;
+          openLots.shift();
         } else {
-          lots[0].shares -= sharesToSell;
+          openLots[0].shares -= sharesToSell;
           sharesToSell = 0;
         }
       }
     }
   }
-  return lots;
+
+  return openLots;
 }
 
+// Get all lots (open + closed) for lifetime metrics
+function getAllLots(ticker, asOfDate) {
+  const txns = df
+    .filter(d => d.Ticker === ticker && d.Date <= asOfDate)
+    .sort((a, b) => a.Date - b.Date);
 
-// Get current holdings given a date
-// Uses getOpenLots above
-function getHoldings(asOfDate) {
-  const tickers = [...new Set(df.map(d => d.Ticker))];
-  return tickers.map(ticker => {
-    const lots = getOpenLots(ticker, asOfDate);
-    if (lots.length === 0) return null;
-    const totalShares = lots.reduce((sum, l) => sum + l.shares, 0);
-    return { Ticker: ticker, Shares: totalShares, Lots: lots };
-  }).filter(Boolean);
-}
+  let openLots = [];
+  let closedLots = [];
 
-// Call to Yahoo finance to get historical performance
-// for a ticket
-async function getPerformance(ticker, lots, asOfDate) {
-  try {
-    // Use the earliest buy date for fetching historical prices
-    const earliestBuyDate = new Date(Math.min(...lots.map(l => l.date)));
-    const res = await fetch(
-      `${ROUTE}/api/stocks/${ticker}?start=${earliestBuyDate.toISOString()}&end=${asOfDate.toISOString()}`
-    );
-    const hist = await res.json();
-
-    if (!hist.quotes || hist.quotes.length === 0)
-      return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
-
-    const lastPrice = hist.quotes[hist.quotes.length - 1].close;
-    const totalValue = lots.reduce((sum, l) => sum + l.shares * lastPrice, 0);
-    const lifetime = lots.reduce((sum, l) => {
-      const lotReturn = (lastPrice - l.price) / l.price;
-      const lotWeight = (l.shares * lastPrice) / totalValue;
-      return sum + lotReturn * lotWeight;
-    }, 0) * 100;
-
-    const weightedCAGR = lots.reduce((sum, l) => {
-      const years = (asOfDate - l.date) / (1000 * 60 * 60 * 24 * 365.25);
-      const lotCAGR = years > 0 ? Math.pow(lastPrice / l.price, 1 / years) - 1 : 0;
-      const lotWeight = (l.shares * lastPrice) / totalValue;
-      return sum + lotCAGR * lotWeight;
-    }, 0) * 100;
-
-    // Monthly return (last 30 days or since purchase)
-    const thirtyDaysAgo = asOfDate.subtract(1, 'month').subtract(1, 'day').toDate();
-    // const perfStart = new Date(Math.max(...lots.map(l => l.date), thirtyDaysAgo));
-    let monthly = lots.reduce((sum, l) => {
-      // Determine start date for this lot
-      const startDate = l.date > thirtyDaysAgo ? l.date : thirtyDaysAgo;
-      console.log(l.date)
-
-      // Find closest historical price on or after startDate
-      const startHist = hist.quotes.find(q => new Date(q.date) >= startDate);
-      console.log(startHist)
-      const startPrice = startHist ? startHist.close : l.price;
-
-      const lotReturn = (lastPrice - startPrice) / startPrice;
-      const lotWeight = (l.shares * lastPrice) / totalValue;
-      return sum + lotReturn * lotWeight;
-    }, 0) * 100;
-
-    return {
-      lastPrice,
-      lifetime,
-      monthly,
-      cagr: weightedCAGR
-    };
-  } catch (err) {
-    console.error(err);
-    return { lifetime: null, monthly: null, lastPrice: null, cagr: null };
+  for (let row of txns) {
+    if (row.Action === "BUY") {
+      openLots.push({ date: row.Date, shares: row.Shares, price: row.Price, Color: row.Color, LogoUrl: row.LogoUrl });
+    } else if (row.Action === "SELL") {
+      let sharesToSell = row.Shares;
+      while (sharesToSell > 0 && openLots.length > 0) {
+        if (openLots[0].shares <= sharesToSell) {
+          closedLots.push({ ...openLots[0], sellPrice: row.Price, sellDate: row.Date });
+          sharesToSell -= openLots[0].shares;
+          openLots.shift();
+        } else {
+          closedLots.push({ ...openLots[0], shares: sharesToSell, sellPrice: row.Price, sellDate: row.Date });
+          openLots[0].shares -= sharesToSell;
+          sharesToSell = 0;
+        }
+      }
+    }
   }
+
+  return { openLots, closedLots };
 }
 
+// Fetch historical prices for open lots
+async function fetchOpenLotsPrice(ticker, earliestDate, asOfDate) {
+  const res = await fetch(`${ROUTE}/api/stocks/${ticker}?start=${earliestDate.toISOString()}&end=${asOfDate.toISOString()}`);
+  const hist = await res.json();
+  return hist.quotes || [];
+}
+
+// Calculate lifetime return & CAGR for all lots
+function computeLifetimeMetrics(lots, asOfDate) {
+  if (!lots || lots.length === 0) return { lifetime: 0, cagr: 0 };
+
+  // Use exitPrice: closed lots use sellPrice, open lots use lastPrice (must be provided)
+  const totalValue = lots.reduce((sum, l) => sum + l.shares * l.exitPrice, 0);
+
+  const lifetime = lots.reduce((sum, l) => {
+    const lotReturn = (l.exitPrice - l.price) / l.price;
+    const lotWeight = (l.shares * l.exitPrice) / totalValue;
+    return sum + lotReturn * lotWeight;
+  }, 0) * 100;
+
+  const cagr = lots.reduce((sum, l) => {
+    const years = (asOfDate - l.date) / (1000 * 60 * 60 * 24 * 365.25);
+    const lotCAGR = years > 0 ? Math.pow(l.exitPrice / l.price, 1 / years) - 1 : 0;
+    const lotWeight = (l.shares * l.exitPrice) / totalValue;
+    return sum + lotCAGR * lotWeight;
+  }, 0) * 100;
+
+  return { lifetime, cagr };
+}
+
+// Component
 export default function MyInvestments() {
   const [asOfDate, setAsOfDate] = useState(M2());
   const [performance, setPerformance] = useState([]);
 
+  async function computeSPYCounterfactual(asOfDate) {
+    const buys = df.filter(d => d.Action === "BUY" && d.Date <= asOfDate);
+    if (!buys.length) return null;
+
+    const earliestDate = new Date(Math.min(...buys.map(b => b.Date)));
+    const spyRes = await fetch(`${ROUTE}/api/stocks/SPY?start=${earliestDate.toISOString()}&end=${asOfDate.toISOString()}`);
+    const spyHist = await spyRes.json();
+    if (!spyHist.quotes || spyHist.quotes.length === 0) return null;
+
+    let spyBatches = [];
+    let totalInvested = 0;
+
+    for (let buy of buys) {
+      const priceEntry = spyHist.quotes.find(q => new Date(q.date) >= buy.Date);
+      if (!priceEntry) continue;
+
+      const price = priceEntry.close;
+      const invested = buy.Shares * buy.Price;
+      totalInvested += invested;
+
+      const shares = invested / price;
+      spyBatches.push({ shares, buyDate: buy.Date, price, exitPrice: spyHist.quotes[spyHist.quotes.length - 1].close });
+    }
+
+    // Total value today
+    const totalValue = spyBatches.reduce((sum, batch) => sum + batch.shares * batch.exitPrice, 0);
+
+    // Weighted CAGR
+    const cagr = spyBatches.reduce((sum, l) => {
+      const years = (asOfDate - l.buyDate) / (1000 * 60 * 60 * 24 * 365.25);
+      const lotCAGR = years > 0 ? Math.pow(l.exitPrice / l.price, 1 / years) - 1 : 0;
+      const lotWeight = (l.shares * l.exitPrice) / totalValue;
+      return sum + lotCAGR * lotWeight;
+    }, 0) * 100;
+
+    const lifetimeReturn = ((totalValue - totalInvested) / totalInvested) * 100;
+
+    return {
+      Ticker: "SPY Counterfactual",
+      CurrentPrice: null, // dash in table
+      LifetimeReturn: lifetimeReturn.toFixed(2),
+      CAGR: cagr.toFixed(2),
+      MonthlyReturn: null, // dash in table
+      Color: "#4e9942",
+      LogoUrl: "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg",
+      Value: totalValue,
+      Weight: 0
+    };
+  }
+
   useEffect(() => {
     async function load() {
-      const holdings = getHoldings(asOfDate);
-      let results = [];
+      const tickers = [...new Set(df.map(d => d.Ticker))];
 
-      for (let h of holdings) {
-        const totalCost = h.Lots.reduce((sum, l) => sum + l.shares * l.price, 0);
-        const totalShares = h.Lots.reduce((sum, l) => sum + l.shares, 0);
-        // const costBasis = totalCost / totalShares;
-        // const buyDate = new Date(Math.min(...h.Lots.map(l => l.date)));
+      // --- Portfolio holdings ---
+      const results = await Promise.all(
+        tickers.map(async ticker => {
+          // Open lots for current holdings
+          const openLots = getOpenLots(ticker, asOfDate);
+          const totalShares = openLots.reduce((sum, l) => sum + l.shares, 0);
+          if (totalShares === 0) return null;
 
-        const perf = await getPerformance(h.Ticker, h.Lots, asOfDate);
+          // Fetch historical prices for open lots
+          const earliestOpen = new Date(Math.min(...openLots.map(l => l.date)));
+          const hist = await fetchOpenLotsPrice(ticker, earliestOpen, asOfDate);
+          const lastPrice = hist.length ? hist[hist.length - 1].close : openLots[openLots.length - 1].price;
 
-        results.push({
-          Ticker: h.Ticker,
-          Shares: h.Shares,
-          Lots: h.Lots,
-          CurrentPrice: perf.lastPrice?.toFixed(2),
-          LifetimeReturn: perf.lifetime ? perf.lifetime.toFixed(2) : null,
-          MonthlyReturn: perf.monthly ? perf.monthly.toFixed(2) : null,
-          CAGR: perf.cagr ? perf.cagr.toFixed(2) : null,
-          Value: h.Shares * (perf.lastPrice || 0),
-          Color: h.Lots[0].Color,
-          LogoUrl: h.Lots[0].LogoUrl
-        });
+          // 1M return (open lots only)
+          const thirtyDaysAgo = new Date(asOfDate);
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        results = results.map(r => ({
-          ...r,
-          Weight: r.Value / results.reduce((sum, x) => sum + x.Value, 0) * 100
-        }));
+          const monthly = openLots.reduce((sum, l) => {
+            const startDate = l.date > thirtyDaysAgo ? l.date : thirtyDaysAgo;
+            const startHist = hist.find(q => new Date(q.date) >= startDate);
+            const startPrice = startHist ? startHist.close : l.price;
+            const lotReturn = (lastPrice - startPrice) / startPrice;
+            const lotWeight = (l.shares * lastPrice) / (openLots.reduce((s, o) => s + o.shares * lastPrice, 0));
+            return sum + lotReturn * lotWeight;
+          }, 0) * 100;
 
-        results.sort((a, b) => b.Weight - a.Weight);
-      }
+          // Lifetime return & CAGR using all lots (open + closed)
+          const { openLots: oLots, closedLots: cLots } = getAllLots(ticker, asOfDate);
+          const allLots = [
+            ...cLots.map(l => ({ ...l, exitPrice: l.sellPrice })),
+            ...oLots.map(l => ({ ...l, exitPrice: lastPrice }))
+          ];
+          const { lifetime, cagr } = computeLifetimeMetrics(allLots, asOfDate);
 
-      setPerformance(results);
+          return {
+            Ticker: ticker,
+            Shares: totalShares,
+            Lots: openLots,
+            CurrentPrice: lastPrice,
+            LifetimeReturn: lifetime.toFixed(2),
+            MonthlyReturn: monthly.toFixed(2),
+            CAGR: cagr.toFixed(2),
+            Value: totalShares * lastPrice,
+            Color: openLots[0].Color,
+            LogoUrl: openLots[0].LogoUrl
+          };
+        })
+      );
+
+      const cleaned = results.filter(Boolean);
+      const totalValue = cleaned.reduce((sum, r) => sum + r.Value, 0);
+      cleaned.forEach(r => { r.Weight = (r.Value / totalValue) * 100; });
+      cleaned.sort((a, b) => b.Weight - a.Weight);
+
+      // --- SPY counterfactual benchmark ---
+      const spyBenchmarkRow = await computeSPYCounterfactual(asOfDate);
+      const finalResults = spyBenchmarkRow ? [...cleaned, spyBenchmarkRow] : cleaned;
+
+      // Set final performance
+      setPerformance(finalResults);
     }
+
     load();
   }, [asOfDate]);
 
   return (
     <section id="investments" className="py-20 bg-slate-900 relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 to-slate-900/20"></div>
-
       <div className="container mx-auto px-6 relative z-10">
         {/* Title */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-16"
-        >
+        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="text-center mb-16">
           <h2 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
             Portfolio Dashboard
           </h2>
@@ -217,30 +288,20 @@ export default function MyInvestments() {
           </p>
         </motion.div>
 
-        {/* Date picker */}
+        {/* Date Picker */}
         <div className="flex justify-center mb-12">
-          <DatePicker
-            value={asOfDate}
-            onChange={d => setAsOfDate(d)}
-            className="!bg-slate-800/70 !border-slate-700 !text-white rounded-lg shadow-inner"
-          />
+          <DatePicker value={asOfDate} onChange={d => setAsOfDate(d)} className="!bg-slate-800/70 !border-slate-700 !text-white rounded-lg shadow-inner" />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
-          {/* Pie Chart Card */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="bg-gradient-to-r from-blue-400/40 to-purple-400/40 backdrop-blur-md rounded-2xl p-8 border border-slate-600/40 hover:border-blue-400/50 transition-all duration-300"
-          >
+          {/* Pie Chart */}
+          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="bg-gradient-to-r from-blue-400/40 to-purple-400/40 backdrop-blur-md rounded-2xl p-8 border border-slate-600/40 hover:border-blue-400/50 transition-all duration-300">
             <h3 className="text-2xl font-bold text-white mb-6">Allocation</h3>
             <div className="w-full h-96">
               <ResponsiveContainer>
                 <PieChart>
                   <Pie
-                    data={performance}
+                    data={performance.filter(p => p.Ticker !== "SPY Counterfactual")} // exclude SPY
                     dataKey="Weight"
                     nameKey="Ticker"
                     cx="50%"
@@ -249,9 +310,11 @@ export default function MyInvestments() {
                     outerRadius={120}
                     label={({ name, Weight }) => `${name}: ${Weight.toFixed(1)}%`}
                   >
-                    {performance.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.Color} />
-                    ))}
+                    {performance
+                      .filter(p => p.Ticker !== "SPY Counterfactual") // exclude SPY for coloring
+                      .map((entry, idx) => (
+                        <Cell key={idx} fill={entry.Color} />
+                      ))}
                   </Pie>
                   <Tooltip content={<PieTooltip />} />
                 </PieChart>
@@ -259,14 +322,8 @@ export default function MyInvestments() {
             </div>
           </motion.div>
 
-          {/* Holdings Table Card */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-300"
-          >
+          {/* Holdings Table */}
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-300">
             <h3 className="text-2xl font-bold text-white mb-6">Holdings</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-slate-300">
@@ -280,67 +337,87 @@ export default function MyInvestments() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700/50">
-                  {performance
-                    .slice()
-                    .sort((a, b) => a.Ticker.localeCompare(b.Ticker))
-                    .map((row, idx) => (
+                  {/* Stock rows */}
+                  {performance.map((row, idx) => {
+                    // Skip SPY for now; will render at the end
+                    if (row.Ticker === "SPY Counterfactual") return null;
+
+                    return (
                       <tr key={idx} className="hover:bg-slate-700/30 transition">
                         <td className="py-3 flex items-center gap-3 font-medium text-white">
                           <img
                             src={row.LogoUrl}
-                            alt={`${row.Company} logo`}
+                            alt={`${row.Ticker} logo`}
                             className="w-6 h-6"
-                            onError={e => { e.currentTarget.style.display = 'none'; }}
+                            onError={e => e.currentTarget.style.display = 'none'}
                           />
                           {row.Ticker}
                         </td>
-                        <td className="py-3">${row.CurrentPrice}</td>
-                        <td
-                          className={`py-3 ${row.LifetimeReturn >= 0 ? "text-green-400" : "text-red-400"
-                            }`}
-                        >
-                          {row.LifetimeReturn}%
+
+                        {/* Current Price */}
+                        <td className="py-3">{row.CurrentPrice != null ? `$${row.CurrentPrice.toFixed(2)}` : "—"}</td>
+
+                        {/* Lifetime Return */}
+                        <td className={`py-3 ${row.LifetimeReturn >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {row.LifetimeReturn != null ? `${row.LifetimeReturn}%` : "—"}
                         </td>
-                        <td
-                          className={`py-3 ${row.CAGR >= 0 ? "text-green-400" : "text-red-400"
-                            }`}
-                        >
-                          {row.CAGR != null && row.CAGR !== ""
-                            ? `${row.CAGR}%`
-                            : `${row.CAGR}%`}
+
+                        {/* CAGR */}
+                        <td className={`py-3 ${row.CAGR >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {row.CAGR != null ? `${row.CAGR}%` : "—"}
                         </td>
-                        <td
-                          className={`py-3 ${row.MonthlyReturn >= 0 ? "text-green-400" : "text-red-400"
-                            }`}
-                        >
-                          {row.MonthlyReturn != null && row.MonthlyReturn !== ""
-                            ? `${row.MonthlyReturn}%`
-                            : `${row.LifetimeReturn}%`}
+
+                        {/* 1M Return */}
+                        <td className={`py-3 ${row.MonthlyReturn != null && row.MonthlyReturn >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {row.MonthlyReturn != null ? `${row.MonthlyReturn}%` : "—"}
                         </td>
                       </tr>
-                    ))}
-                  {performance.length > 0 && (() => {
-                    const totalValue = performance.reduce((sum, p) => sum + p.Value, 0);
+                    );
+                  })}
 
-                    const overallLifetime = performance.reduce((sum, p) => sum + (p.LifetimeReturn || 0) * p.Value / totalValue, 0);
-                    const overallCAGR = performance.reduce((sum, p) => sum + (p.CAGR || 0) * p.Value / totalValue, 0);
-                    const overall30D = performance.reduce((sum, p) => sum + (p.MonthlyReturn || 0) * p.Value / totalValue, 0);
+                  {/* Overall Portfolio row (stocks only) */}
+                  {performance.length > 0 && (() => {
+                    const totalValue = performance.reduce((sum, p) => p.Ticker === "SPY Counterfactual" ? sum : sum + p.Value, 0);
+
+                    const overallLifetime = performance.reduce((sum, p) =>
+                      p.Ticker === "SPY Counterfactual" ? sum : sum + (p.LifetimeReturn || 0) * p.Value / totalValue, 0
+                    );
+
+                    const overallCAGR = performance.reduce((sum, p) =>
+                      p.Ticker === "SPY Counterfactual" ? sum : sum + (p.CAGR || 0) * p.Value / totalValue, 0
+                    );
+
+                    const overall30D = performance.reduce((sum, p) =>
+                      p.Ticker === "SPY Counterfactual" ? sum : sum + (p.MonthlyReturn || 0) * p.Value / totalValue, 0
+                    );
 
                     return (
-                      <tr className="bg-slate-700/40 font-semibold border-t border-slate-600/50">
+                      <tr className="bg-slate-600 font-semibold border-t border-slate-500">
                         <td className="py-3 text-white">Overall Portfolio</td>
                         <td className="py-3 text-slate-300">—</td>
-                        <td className={`py-3 text-white`}>
-                          {/* {overallLifetime.toFixed(2)}% */}
-                          —
+                        <td className={`py-3 ${overallLifetime >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {overallLifetime.toFixed(2)}%
                         </td>
-                        <td className={`py-3 text-white`}>
-                          {/* {overallCAGR.toFixed(2)}% */}
-                          —
+                        <td className={`py-3 ${overallCAGR >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {overallCAGR.toFixed(2)}%
                         </td>
                         <td className={`py-3 ${overall30D >= 0 ? "text-green-400" : "text-red-400"}`}>
                           {overall30D.toFixed(2)}%
                         </td>
+                      </tr>
+                    );
+                  })()}
+
+                  {/* SPY Counterfactual benchmark as last row */}
+                  {performance.find(p => p.Ticker === "SPY Counterfactual") && (() => {
+                    const spy = performance.find(p => p.Ticker === "SPY Counterfactual");
+                    return (
+                      <tr className="bg-slate-600 font-semibold border-t border-slate-500">
+                        <td className="py-3 text-white">{spy.Ticker}</td>
+                        <td className="py-3 text-slate-300">—</td>
+                        <td className="py-3 text-blue-400">{spy.LifetimeReturn}%</td>
+                        <td className="py-3 text-blue-400">{spy.CAGR}%</td>
+                        <td className="py-3 text-blue-400">{performance.find(p => p.Ticker === "SPY")?.MonthlyReturn || "—"}%</td>
                       </tr>
                     );
                   })()}
