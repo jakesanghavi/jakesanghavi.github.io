@@ -8,6 +8,10 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
+  ["BUY", "Microsoft", "MSFT", "2026-04-13", 393.63, 0.0018, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Checking"],
+  ["BUY", "Microsoft", "MSFT", "2026-04-13", 393.53, 0.002, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Roth IRA"],
+  ["BUY", "Adobe", "ADBE", "2025-03-12", 269.78, 0.0002, '#ec1f11', "https://api.iconify.design/simple-icons:adobe.svg?color=%23EC1F11", "Checking"],
+  ["BUY", "Iren", "IREN", "2026-03-12", 40.45, 0.005, '#70da7e', "https://iren.com/icons/logo.svg?dpl=947", "Checking"],
   ["SELL", "Fiserv", "FISV", "2026-03-09", 60.92, 0.003, '#ff6600', "https://upload.wikimedia.org/wikipedia/commons/thumb/8/89/Fiserv_logo.svg/1280px-Fiserv_logo.svg.png", "Checking"],
   ["BUY", "RobinHood", "HOOD", "2026-03-06", 77.88, 0.0125, '#ceff1a', "https://api.iconify.design/simple-icons:robinhood.svg?color=%23CEFF1A", "Checking"],
   ["BUY", "Vertiv", "VRT", "2026-03-06", 248.61, 0.0015, '#1c1c1c', "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Vertiv_logo.svg/250px-Vertiv_logo.svg.png", "Checking"],
