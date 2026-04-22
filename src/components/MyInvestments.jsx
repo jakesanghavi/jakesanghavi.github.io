@@ -9,6 +9,7 @@ import PieTooltip from "../components/PieToolTip";
 // Predefined stock info
 const rawData = [
   ["BUY", "United Healthcare", "UNH", "2026-04-20", 323.31, 0.001, '#08287e', "https://1000logos.net/wp-content/uploads/2018/02/unitedhealthcare-emblem.png", "Checking"],
+  ["BUY", "Meta", "META", "2026-04-17", 683.53, 0.001, '#1685fe', "https://api.iconify.design/simple-icons:meta.svg?color=%231685FE", "Checking"],
   ["BUY", "Microsoft", "MSFT", "2026-04-13", 393.63, 0.0018, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Checking"],
   ["BUY", "Microsoft", "MSFT", "2026-04-13", 393.53, 0.002, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Roth IRA"],
   ["BUY", "Adobe", "ADBE", "2025-03-12", 269.78, 0.0002, '#ec1f11', "https://api.iconify.design/simple-icons:adobe.svg?color=%23EC1F11", "Checking"],
@@ -18,7 +19,9 @@ const rawData = [
   ["BUY", "Vertiv", "VRT", "2026-03-06", 248.61, 0.0015, '#1c1c1c', "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Vertiv_logo.svg/250px-Vertiv_logo.svg.png", "Checking"],
   ["BUY", "Microsoft", "MSFT", "2026-01-30", 430.06, 0.0012, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Checking"],
   ["BUY", "Nvidia", "NVDA", "2026-01-16", 187.12, 0.004, '#7dba17', "https://api.iconify.design/simple-icons:nvidia.svg?color=%237DBA17", "Checking"],
-  ["BUY", "Zeta", "ZETA", "2025-01-07", 23.39, 0.0215, '#6535ab', "https://api.iconify.design/token:zeta-chain.svg?color=%236535AB", "Checking"],
+  ["BUY", "Zeta", "ZETA", "2026-01-07", 23.39, 0.0215, '#6535ab', "https://api.iconify.design/token:zeta-chain.svg?color=%236535AB", "Checking"],
+  ["BUY", "Meta", "META", "2025-11-05", 638.75, 0.0005, '#1685fe', "https://api.iconify.design/simple-icons:meta.svg?color=%231685FE", "Checking"],
+  ["BUY", "Meta", "META", "2025-10-31", 648.39, 0.0003, '#1685fe', "https://api.iconify.design/simple-icons:meta.svg?color=%231685FE", "Checking"],
   ["BUY", "Amazon", "AMZN", "2025-10-23", 221.07, 0.0035, '#ff9c1b', "https://api.iconify.design/simple-icons:amazon.svg?color=%23FF9C1B", "Checking"],
   ["BUY", "Adobe", "ADBE", "2025-09-12", 348.04, 0.002, '#ec1f11', "https://api.iconify.design/simple-icons:adobe.svg?color=%23EC1F11", "Checking"],
   ["SELL", "Palantir", "PLTR", "2025-08-29", 156.93, 0.0033, '#000000', "https://api.iconify.design/simple-icons:palantir.svg?color=%23000000", "Checking"],
