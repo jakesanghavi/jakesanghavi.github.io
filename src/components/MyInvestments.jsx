@@ -8,7 +8,7 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
-  ["BUY", "United Healthcare", "UNH", "2026-04-20", 393.63, 0.001, '#08287e', "https://1000logos.net/wp-content/uploads/2018/02/unitedhealthcare-emblem.png", "Checking"],
+  ["BUY", "United Healthcare", "UNH", "2026-04-20", 323.31, 0.001, '#08287e', "https://1000logos.net/wp-content/uploads/2018/02/unitedhealthcare-emblem.png", "Checking"],
   ["BUY", "Microsoft", "MSFT", "2026-04-13", 393.63, 0.0018, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Checking"],
   ["BUY", "Microsoft", "MSFT", "2026-04-13", 393.53, 0.002, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Roth IRA"],
   ["BUY", "Adobe", "ADBE", "2025-03-12", 269.78, 0.0002, '#ec1f11', "https://api.iconify.design/simple-icons:adobe.svg?color=%23EC1F11", "Checking"],
