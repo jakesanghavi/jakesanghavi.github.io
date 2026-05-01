@@ -8,6 +8,8 @@ export default function PieTooltip({ active, payload }) {
 
   if (openLots.length === 0) return null;
 
+  const totalPositionValue = openLots.reduce((sum, lot) => sum + (lot.shares * lot.price), 0);
+
   return (
     <div className="bg-slate-900 text-white rounded-lg p-4 shadow-lg border border-slate-700/50">
       <h4 className="font-bold mb-2">{stock.Ticker} Purchase History</h4>
@@ -21,8 +23,8 @@ export default function PieTooltip({ active, payload }) {
         </thead>
         <tbody>
           {openLots.map((lot, idx) => {
-            const totalShares = stock.Shares;
-            const percent = ((lot.shares / totalShares) * 100).toFixed(1);
+            const lotValue = lot.shares * lot.price;
+            const percent = ((lotValue / totalPositionValue) * 100).toFixed(1);
             return (
               <tr key={idx} className="border-b border-slate-700/30">
                 <td className="pr-2">{lot.date.toLocaleDateString()}</td>
