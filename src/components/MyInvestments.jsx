@@ -8,6 +8,10 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
+  ["BUY", "Microsoft", "MSFT", "2026-04-29", 423.62, 0.001, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Checking"],
+  ["BUY", "Meta", "META", "2026-04-29", 670.86, 0.0005, '#1685fe', "https://api.iconify.design/simple-icons:meta.svg?color=%231685FE", "Checking"],
+  ["BUY", "Micron", "MU", "2026-04-29", 520.43, 0.0012, '#9e03cc', "https://companieslogo.com/img/orig/MU.D-7d8b6366.png?t=1740419775", "Checking"],  
+  ["SELL", "Adobe", "ADBE", "2026-04-27", 243.58, 0.0022, '#ec1f11', "https://api.iconify.design/simple-icons:adobe.svg?color=%23EC1F11", "Checking"],
   ["BUY", "United Healthcare", "UNH", "2026-04-20", 323.31, 0.001, '#08287e', "https://1000logos.net/wp-content/uploads/2018/02/unitedhealthcare-emblem.png", "Checking"],
   ["BUY", "Meta", "META", "2026-04-17", 683.53, 0.001, '#1685fe', "https://api.iconify.design/simple-icons:meta.svg?color=%231685FE", "Checking"],
   ["BUY", "Microsoft", "MSFT", "2026-04-13", 393.63, 0.0018, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Checking"],
