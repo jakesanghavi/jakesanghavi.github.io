@@ -145,6 +145,33 @@ function computePortfolioXIRR(asOfDate, priceMap) {
   return xirr(cashflows) * 100;
 }
 
+const computeFilteredXIRR = (asOfDate, tickers, priceMap) => {
+  const cashflows = [];
+
+  for (let t of df) {
+    if (t.Date > asOfDate) continue;
+    if (!tickers.includes(t.Ticker)) continue;
+
+    const value = t.Price * t.Shares;
+
+    if (t.Action === "BUY") cashflows.push({ date: t.Date, amount: -value });
+    if (t.Action === "SELL") cashflows.push({ date: t.Date, amount: value });
+  }
+
+  for (let ticker of tickers) {
+    const openLots = getOpenLots(ticker, asOfDate);
+    const shares = openLots.reduce((s, l) => s + l.shares, 0);
+    if (!shares) continue;
+
+    cashflows.push({
+      date: asOfDate,
+      amount: shares * priceMap[ticker]
+    });
+  }
+
+  return xirr(cashflows) * 100;
+};
+
 
 // Get open lots only (for pie chart, table, 1M return)
 function getOpenLots(ticker, asOfDate) {
@@ -551,7 +578,8 @@ export default function MyInvestments() {
                     const priceMap = {};
                     nonSpy.forEach(p => (priceMap[p.Ticker] = p.CurrentPrice));
 
-                    const xirrVal = computePortfolioXIRR(asOfDate.toDate(), priceMap);
+                    const tickers = nonSpy.map(p => p.Ticker);
+                    const xirrVal = computeFilteredXIRR(asOfDate.toDate(), tickers, priceMap);
 
                     return (
                       <tr className="bg-slate-600 font-semibold border-t border-slate-500">

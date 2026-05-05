@@ -1,13 +1,13 @@
 import express from "express";
 import cors from "cors";
 import YahooFinance from "yahoo-finance2";
-import { ORIGIN } from "../constants.js";
+import { ORIGINS } from "../constants.js";
 
 const app = express();
 const yahooFinance = new YahooFinance();
 
 app.use(cors({
-  origin: ORIGIN,
+  origin: ORIGINS,
   optionsSuccessStatus: 200
 }));
 
