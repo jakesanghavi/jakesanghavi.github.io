@@ -8,6 +8,8 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
+  ["BUY", "Micron", "MU", "2026-05-04", 577.17, 0.001, '#9e03cc', "https://companieslogo.com/img/orig/MU.D-7d8b6366.png?t=1740419775", "Checking"],  
+  ["SELL", "RobinHood", "HOOD", "2026-05-04", 77.38, 0.0125, '#ceff1a', "https://api.iconify.design/simple-icons:robinhood.svg?color=%23CEFF1A", "Checking"],
   ["BUY", "Microsoft", "MSFT", "2026-04-29", 423.62, 0.001, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Checking"],
   ["BUY", "Meta", "META", "2026-04-29", 670.86, 0.0005, '#1685fe', "https://api.iconify.design/simple-icons:meta.svg?color=%231685FE", "Checking"],
   ["BUY", "Micron", "MU", "2026-04-29", 520.43, 0.0012, '#9e03cc', "https://companieslogo.com/img/orig/MU.D-7d8b6366.png?t=1740419775", "Checking"],  
