@@ -8,11 +8,11 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
-  ["BUY", "Micron", "MU", "2026-05-04", 577.17, 0.001, '#9e03cc', "https://companieslogo.com/img/orig/MU.D-7d8b6366.png?t=1740419775", "Checking"],  
+  ["BUY", "Micron", "MU", "2026-05-04", 577.17, 0.001, '#9e03cc', "https://companieslogo.com/img/orig/MU.D-7d8b6366.png?t=1740419775", "Checking"],
   ["SELL", "RobinHood", "HOOD", "2026-05-04", 77.38, 0.0125, '#ceff1a', "https://api.iconify.design/simple-icons:robinhood.svg?color=%23CEFF1A", "Checking"],
   ["BUY", "Microsoft", "MSFT", "2026-04-29", 423.62, 0.001, '#1ba7f0', "https://api.iconify.design/simple-icons:microsoft.svg?color=%231BA7F0", "Checking"],
   ["BUY", "Meta", "META", "2026-04-29", 670.86, 0.0005, '#1685fe', "https://api.iconify.design/simple-icons:meta.svg?color=%231685FE", "Checking"],
-  ["BUY", "Micron", "MU", "2026-04-29", 520.43, 0.0012, '#9e03cc', "https://companieslogo.com/img/orig/MU.D-7d8b6366.png?t=1740419775", "Checking"],  
+  ["BUY", "Micron", "MU", "2026-04-29", 520.43, 0.0012, '#9e03cc', "https://companieslogo.com/img/orig/MU.D-7d8b6366.png?t=1740419775", "Checking"],
   ["SELL", "Adobe", "ADBE", "2026-04-27", 243.58, 0.0022, '#ec1f11', "https://api.iconify.design/simple-icons:adobe.svg?color=%23EC1F11", "Checking"],
   ["BUY", "United Healthcare", "UNH", "2026-04-20", 323.31, 0.001, '#08287e', "https://1000logos.net/wp-content/uploads/2018/02/unitedhealthcare-emblem.png", "Checking"],
   ["BUY", "Meta", "META", "2026-04-17", 683.53, 0.001, '#1685fe', "https://api.iconify.design/simple-icons:meta.svg?color=%231685FE", "Checking"],
@@ -523,6 +523,51 @@ export default function MyInvestments() {
                         {/* 1M return */}
                         <td className={`py-3 ${overall30D >= 0 ? "text-green-400" : "text-red-400"}`}>
                           {overall30D.toFixed(2)}%
+                        </td>
+                      </tr>
+                    );
+                  })()}
+
+                  {/* Indv only */}
+                  {performance.length > 0 && (() => {
+                    const nonSpy = performance.filter(
+                      p => p.Ticker !== "SPY" && p.Ticker !== "SPY Counterfactual"
+                    );
+
+                    if (!nonSpy.length) return null;
+
+                    const totalValue = nonSpy.reduce((sum, p) => sum + p.Value, 0);
+
+                    const lifetime = nonSpy.reduce(
+                      (sum, p) => sum + (p.LifetimeReturn || 0) * p.Value / totalValue,
+                      0
+                    );
+
+                    const monthly = nonSpy.reduce(
+                      (sum, p) => sum + (p.MonthlyReturn || 0) * p.Value / totalValue,
+                      0
+                    );
+
+                    const priceMap = {};
+                    nonSpy.forEach(p => (priceMap[p.Ticker] = p.CurrentPrice));
+
+                    const xirrVal = computePortfolioXIRR(asOfDate.toDate(), priceMap);
+
+                    return (
+                      <tr className="bg-slate-600 font-semibold border-t border-slate-500">
+                        <td className="py-3 text-white">Individual Holdings</td>
+                        <td className="py-3 text-slate-300">—</td>
+
+                        <td className={`py-3 ${lifetime >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {lifetime.toFixed(2)}%
+                        </td>
+
+                        <td className={`py-3 ${xirrVal >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {xirrVal.toFixed(2)}%
+                        </td>
+
+                        <td className={`py-3 ${monthly >= 0 ? "text-green-400" : "text-red-400"}`}>
+                          {monthly.toFixed(2)}%
                         </td>
                       </tr>
                     );
