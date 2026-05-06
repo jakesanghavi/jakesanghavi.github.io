@@ -79,9 +79,7 @@ function xirr(cashflows, guess = 0.1) {
   const maxIter = 100;
   const tol = 1e-6;
 
-  // sort cashflows by date
   cashflows = [...cashflows].sort((a, b) => a.date - b.date);
-
   const t0 = cashflows[0].date;
 
   const npv = rate =>
@@ -106,10 +104,10 @@ function xirr(cashflows, guess = 0.1) {
     const value = npv(rate);
     const deriv = dnpv(rate);
 
-    if (Math.abs(deriv) < 1e-10) break; // guard
+    if (Math.abs(deriv) < 1e-10) break;
 
     let newRate = rate - value / deriv;
-    if (newRate < -0.9999) newRate = -0.9999; // clamp
+    if (newRate < -0.9999) newRate = -0.9999;
 
     if (Math.abs(newRate - rate) < tol) return newRate;
 
@@ -119,61 +117,36 @@ function xirr(cashflows, guess = 0.1) {
   return rate;
 }
 
-function computePortfolioXIRR(asOfDate, priceMap) {
+/**
+ * Computes portfolio XIRR using ALL cashflows (buys, sells, and terminal value of open lots).
+ * Optionally filter by tickers. priceMap must contain current prices for open positions.
+ */
+const computePortfolioXIRR = (asOfDate, tickers, priceMap) => {
   const cashflows = [];
 
-  for (let t of df) {
-    if (t.Date > asOfDate) continue;
+  const relevantTxns = df.filter(t =>
+    t.Date <= asOfDate && (!tickers || tickers.includes(t.Ticker))
+  );
 
+  for (let t of relevantTxns) {
     const value = t.Price * t.Shares;
-
     if (t.Action === "BUY") cashflows.push({ date: t.Date, amount: -value });
     if (t.Action === "SELL") cashflows.push({ date: t.Date, amount: value });
   }
 
-  for (let ticker of Object.keys(priceMap)) {
+  // Terminal value: open lots at current price
+  const usedTickers = tickers || [...new Set(df.map(d => d.Ticker))];
+  for (let ticker of usedTickers) {
     const openLots = getOpenLots(ticker, asOfDate);
     const shares = openLots.reduce((s, l) => s + l.shares, 0);
-    if (!shares) continue;
-
-    cashflows.push({
-      date: asOfDate,
-      amount: shares * priceMap[ticker]
-    });
-  }
-
-  return xirr(cashflows) * 100;
-}
-
-const computeFilteredXIRR = (asOfDate, tickers, priceMap) => {
-  const cashflows = [];
-
-  for (let t of df) {
-    if (t.Date > asOfDate) continue;
-    if (!tickers.includes(t.Ticker)) continue;
-
-    const value = t.Price * t.Shares;
-
-    if (t.Action === "BUY") cashflows.push({ date: t.Date, amount: -value });
-    if (t.Action === "SELL") cashflows.push({ date: t.Date, amount: value });
-  }
-
-  for (let ticker of tickers) {
-    const openLots = getOpenLots(ticker, asOfDate);
-    const shares = openLots.reduce((s, l) => s + l.shares, 0);
-    if (!shares) continue;
-
-    cashflows.push({
-      date: asOfDate,
-      amount: shares * priceMap[ticker]
-    });
+    if (!shares || !priceMap[ticker]) continue;
+    cashflows.push({ date: asOfDate, amount: shares * priceMap[ticker] });
   }
 
   return xirr(cashflows) * 100;
 };
 
-
-// Get open lots only (for pie chart, table, 1M return)
+// Get open lots only (for pie chart, table, current holdings)
 function getOpenLots(ticker, asOfDate) {
   const txns = df
     .filter(d => d.Ticker === ticker && d.Date <= asOfDate)
@@ -201,45 +174,14 @@ function getOpenLots(ticker, asOfDate) {
   return openLots;
 }
 
-// Get all lots (open + closed) for lifetime metrics
-function getAllLots(ticker, asOfDate) {
-  const txns = df
-    .filter(d => d.Ticker === ticker && d.Date <= asOfDate)
-    .sort((a, b) => a.Date - b.Date);
-
-  let openLots = [];
-  let closedLots = [];
-
-  for (let row of txns) {
-    if (row.Action === "BUY") {
-      openLots.push({ date: row.Date, shares: row.Shares, price: row.Price, Color: row.Color, LogoUrl: row.LogoUrl });
-    } else if (row.Action === "SELL") {
-      let sharesToSell = row.Shares;
-      while (sharesToSell > 0 && openLots.length > 0) {
-        if (openLots[0].shares <= sharesToSell) {
-          closedLots.push({ ...openLots[0], sellPrice: row.Price, sellDate: row.Date });
-          sharesToSell -= openLots[0].shares;
-          openLots.shift();
-        } else {
-          closedLots.push({ ...openLots[0], shares: sharesToSell, sellPrice: row.Price, sellDate: row.Date });
-          openLots[0].shares -= sharesToSell;
-          sharesToSell = 0;
-        }
-      }
-    }
-  }
-
-  return { openLots, closedLots };
-}
-
-// Fetch historical prices for open lots
-async function fetchOpenLotsPrice(ticker, earliestDate, asOfDate) {
-  const res = await fetch(`${ROUTE}/api/stocks/${ticker}?start=${earliestDate.toISOString()}&end=${asOfDate.toISOString()}`);
+// Fetch historical prices for a ticker between two dates
+async function fetchTickerHistory(ticker, startDate, endDate) {
+  const res = await fetch(`${ROUTE}/api/stocks/${ticker}?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
   const hist = await res.json();
   return hist.quotes || [];
 }
 
-// Calculate lifetime return & CAGR for all lots
+// Calculate lifetime return & XIRR for a single ticker across all lots (open + closed)
 function computeLifetimeMetrics(ticker, asOfDate, lastPrice) {
   const txns = df
     .filter(d => d.Ticker === ticker && d.Date <= asOfDate)
@@ -247,13 +189,11 @@ function computeLifetimeMetrics(ticker, asOfDate, lastPrice) {
 
   if (!txns.length) return { lifetime: 0, xirr: 0 };
 
-  // Track open lots and closed lots
   let openLots = [];
   let cashflows = [];
 
   for (let t of txns) {
     const value = t.Price * t.Shares;
-
     if (t.Action === "BUY") {
       openLots.push({ date: t.Date, shares: t.Shares, price: t.Price });
       cashflows.push({ date: t.Date, amount: -value });
@@ -270,12 +210,10 @@ function computeLifetimeMetrics(ticker, asOfDate, lastPrice) {
     }
   }
 
-  // Add remaining open lots at lastPrice
   for (let lot of openLots) {
     cashflows.push({ date: asOfDate, amount: lot.shares * lastPrice });
   }
 
-  // Lifetime return = (total value now + all sells − total buys) / total buys
   const totalInvested = txns
     .filter(t => t.Action === "BUY")
     .reduce((sum, t) => sum + t.Price * t.Shares, 0);
@@ -286,7 +224,6 @@ function computeLifetimeMetrics(ticker, asOfDate, lastPrice) {
 
   const lifetime = ((totalReturned - totalInvested) / totalInvested) * 100;
 
-  // XIRR
   const hasPos = cashflows.some(c => c.amount > 0);
   const hasNeg = cashflows.some(c => c.amount < 0);
   const rate = hasPos && hasNeg ? xirr(cashflows) * 100 : 0;
@@ -299,125 +236,397 @@ export default function MyInvestments() {
   const [asOfDate, setAsOfDate] = useState(M2());
   const [performance, setPerformance] = useState([]);
   const [portfolioXIRR, setPortfolioXIRR] = useState(null);
+  // aggregateMetrics holds computed window returns for the summary rows
+  // { overall: {lifetime, xirr, monthly, yearly, daily}, individual: {...}, spy: {...} }
+  const [aggregateMetrics, setAggregateMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   async function computeSPYCounterfactual(asOfDate) {
-    const buys = df.filter(d => d.Action === "BUY" && d.Date <= asOfDate);
-    if (!buys.length) return null;
+    const txns = df.filter(d => d.Date <= asOfDate).sort((a, b) => a.Date - b.Date);
+    if (!txns.length) return null;
 
-    const earliestDate = new Date(Math.min(...buys.map(b => b.Date)));
+    const earliestDate = txns[0].Date;
     const spyRes = await fetch(`${ROUTE}/api/stocks/SPY?start=${earliestDate.toISOString()}&end=${asOfDate.toISOString()}`);
-    const spyHist = await spyRes.json();
-    if (!spyHist.quotes || spyHist.quotes.length === 0) return null;
+    const spyData = await spyRes.json();
+    const spyHist = spyData.quotes || [];
+    if (!spyHist.length) return null;
 
-    let totalInvested = 0;
-    const allCashflows = [];
+    const getSpyPriceOn = (date) => {
+      const match = spyHist.find(q => new Date(q.date) >= date);
+      return match ? match.close : spyHist[spyHist.length - 1].close;
+    };
 
-    for (let buy of buys) {
-      const priceEntry = spyHist.quotes.find(q => new Date(q.date) >= buy.Date);
-      if (!priceEntry) continue;
+    const currentSpyPrice = spyHist[spyHist.length - 1].close;
+    let shadowSpyShares = 0;
+    const cashflows = [];
 
-      const price = priceEntry.close;
-      const invested = buy.Shares * buy.Price;
-      totalInvested += invested;
+    for (let t of txns) {
+      const spyPrice = getSpyPriceOn(t.Date);
+      const tradeValue = t.Price * t.Shares;
 
-      const shares = invested / price;
-
-      // Cashflows per lot for XIRR
-      const lotCashflows = [
-        { date: buy.Date, amount: -invested },
-        { date: asOfDate, amount: shares * spyHist.quotes[spyHist.quotes.length - 1].close }
-      ];
-
-      allCashflows.push(...lotCashflows);
+      if (t.Action === "BUY") {
+        shadowSpyShares += (tradeValue / spyPrice);
+        cashflows.push({ date: t.Date, amount: -tradeValue });
+      } else if (t.Action === "SELL") {
+        shadowSpyShares -= (tradeValue / spyPrice);
+        cashflows.push({ date: t.Date, amount: tradeValue });
+      }
     }
 
-    // Portfolio XIRR now accurately accounts for timing
-    const portfolioXIRRValue = xirr(allCashflows) * 100;
+    const finalValue = shadowSpyShares * currentSpyPrice;
+    const cashflowsWithTerminal = [...cashflows, { date: asOfDate, amount: finalValue }];
 
-    // Lifetime return: net invested vs final value
-    const finalValue = allCashflows.filter(c => c.amount > 0).reduce((sum, cf) => sum + cf.amount, 0);
-    const lifetimeReturn = ((finalValue - totalInvested) / totalInvested) * 100;
+    const totalInflows = cashflowsWithTerminal.filter(c => c.amount > 0).reduce((a, b) => a + b.amount, 0);
+    const totalOutflows = Math.abs(cashflowsWithTerminal.filter(c => c.amount < 0).reduce((a, b) => a + b.amount, 0));
+    const lifetimeReturn = totalOutflows > 0 ? ((totalInflows - totalOutflows) / totalOutflows) * 100 : 0;
+    const spyXirr = xirr(cashflowsWithTerminal) * 100;
+
+    const computeShadowWindowReturn = (days) => {
+      const dStart = new Date(asOfDate);
+      dStart.setDate(dStart.getDate() - days);
+      dStart.setHours(0, 0, 0, 0);
+
+      const startPrice = getSpyPriceOn(dStart);
+
+      // Calculate shares held specifically at the start of this window
+      let sharesAtStart = 0;
+      let windowCashIn = 0;
+      let windowCashOut = 0;
+
+      for (let t of txns) {
+        const spyPrice = getSpyPriceOn(t.Date);
+        const val = t.Price * t.Shares;
+        if (t.Date <= dStart) {
+          if (t.Action === "BUY") sharesAtStart += (val / spyPrice);
+          else sharesAtStart -= (val / spyPrice);
+        } else {
+          if (t.Action === "BUY") windowCashIn += val;
+          else windowCashOut += val;
+        }
+      }
+
+      const startVal = sharesAtStart * startPrice;
+      const endVal = shadowSpyShares * currentSpyPrice;
+      const denominator = startVal + windowCashIn;
+
+      return denominator > 0
+        ? ((endVal + windowCashOut - startVal - windowCashIn) / denominator) * 100
+        : 0;
+    };
 
     return {
       Ticker: "SPY Counterfactual",
-      CurrentPrice: null,
+      CurrentPrice: currentSpyPrice,
       LifetimeReturn: lifetimeReturn.toFixed(2),
-      CAGR: portfolioXIRRValue.toFixed(2),
-      MonthlyReturn: null,
-      Color: "#4e9942",
+      CAGR: spyXirr.toFixed(2),
+      MonthlyReturn: computeShadowWindowReturn(30).toFixed(1),
+      YearlyReturn: computeShadowWindowReturn(365).toFixed(1),
+      DailyReturn: computeShadowWindowReturn(1).toFixed(1),
+      Color: "",
       LogoUrl: "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg",
       Value: finalValue,
       Weight: 0
     };
   }
 
-  useEffect(() => {
-    async function load() {
-      const tickers = [...new Set(df.map(d => d.Ticker))];
+  /**
+   * Compute aggregate metrics for summary rows, accounting for ALL positions
+   * (including those opened and closed within the window).
+   *
+   * Strategy:
+   * - For each ticker that had ANY activity (buy or sell) on or before asOfDate,
+   *   determine the shares held at windowStart and at asOfDate.
+   * - Use the price history to compute the dollar return over the window.
+   * - Sum across tickers to get a total-portfolio dollar return, then divide by
+   *   the starting portfolio value to get a % return.
+   *
+   * This correctly weights:
+   *   - Stocks still held: full window return
+   *   - Stocks bought mid-window: return from buy date to asOfDate
+   *   - Stocks sold mid-window: return from windowStart (or buy) to sell date
+   *   - Stocks bought AND sold mid-window: return from buy to sell
+   */
+  async function computeAggregateWindowReturn(asOfDate, windowDays, historyByTicker, spyOnly = false) {
+    // 1. Normalize asOfDate to the very end of the day
+    const dEnd = new Date(asOfDate);
+    dEnd.setHours(23, 59, 59, 999);
 
-      // --- Portfolio holdings ---
-      const results = await Promise.all(
-        tickers.map(async ticker => {
-          // Open lots for current holdings
-          const openLots = getOpenLots(ticker, asOfDate);
-          const totalShares = openLots.reduce((sum, l) => sum + l.shares, 0);
-          if (totalShares === 0) return null;
+    // 2. Normalize windowStart to the very beginning of the day X days ago
+    const dStart = new Date(asOfDate);
+    dStart.setDate(dStart.getDate() - windowDays);
+    dStart.setHours(0, 0, 0, 0);
 
-          // Fetch historical prices for open lots
-          const earliestOpen = new Date(Math.min(...openLots.map(l => l.date)));
-          const hist = await fetchOpenLotsPrice(ticker, earliestOpen, asOfDate);
-          const lastPrice = hist.length ? hist[hist.length - 1].close : openLots[openLots.length - 1].price;
+    let totalStartValue = 0;
+    let totalEndValue = 0;
+    let totalCashIn = 0;
+    let totalCashOut = 0;
 
-          // 1M return (open lots only)
-          const thirtyDaysAgo = new Date(asOfDate);
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const allTickers = [...new Set(df.map(d => d.Ticker))];
 
-          const monthly = openLots.reduce((sum, l) => {
-            const startDate = l.date > thirtyDaysAgo ? l.date : thirtyDaysAgo;
-            const startHist = hist.find(q => new Date(q.date) >= startDate);
-            const startPrice = startHist ? startHist.close : l.price;
-            const lotReturn = (lastPrice - startPrice) / startPrice;
-            const lotWeight = (l.shares * lastPrice) / (openLots.reduce((s, o) => s + o.shares * lastPrice, 0));
-            return sum + lotReturn * lotWeight;
-          }, 0) * 100;
+    for (let ticker of allTickers) {
+      if (spyOnly && ticker !== "SPY") continue;
+      const hist = historyByTicker[ticker];
+      if (!hist || hist.length === 0) continue;
 
-          // Lifetime return & CAGR using all lots (open + closed)
-          const { lifetime, xirr } = computeLifetimeMetrics(ticker, asOfDate, lastPrice);
+      // FIND START PRICE: The closest closing price ON or BEFORE dStart
+      const startPrice = hist.reduce((prev, curr) => {
+        const currDate = new Date(curr.date);
+        return (currDate <= dStart) ? curr : prev;
+      }, hist[0]).close;
 
-          return {
-            Ticker: ticker,
-            Shares: totalShares,
-            Lots: openLots,
-            CurrentPrice: lastPrice,
-            LifetimeReturn: lifetime.toFixed(2),
-            MonthlyReturn: monthly.toFixed(2),
-            CAGR: xirr.toFixed(2),   // label unchanged but now XIRR
-            Value: totalShares * lastPrice,
-            Color: openLots[0].Color,
-            LogoUrl: openLots[0].LogoUrl
-          };
-        })
+      const lastPrice = hist[hist.length - 1].close;
+
+      // Get holdings at the start of the window
+      const lotsAtWindowStart = getOpenLots(ticker, dStart);
+      const startShares = lotsAtWindowStart.reduce((s, l) => s + l.shares, 0);
+      totalStartValue += startShares * startPrice;
+
+      // Capture activity WITHIN the window
+      const windowTxns = df.filter(d =>
+        d.Ticker === ticker && d.Date > dStart && d.Date <= dEnd
       );
 
-      const cleaned = results.filter(Boolean);
-      const totalValue = cleaned.reduce((sum, r) => sum + r.Value, 0);
-      const priceMap = {};
-      cleaned.forEach(r => priceMap[r.Ticker] = r.CurrentPrice);
-
-      setPortfolioXIRR(computePortfolioXIRR(asOfDate.toDate(), priceMap));
-      cleaned.forEach(r => { r.Weight = (r.Value / totalValue) * 100; });
-      cleaned.sort((a, b) => b.Weight - a.Weight);
-
-      // --- SPY counterfactual benchmark ---
-      const spyBenchmarkRow = await computeSPYCounterfactual(asOfDate);
-      const finalResults = spyBenchmarkRow ? [...cleaned, spyBenchmarkRow] : cleaned;
-
-      // Set final performance
-      setPerformance(finalResults);
+      let currentShares = startShares;
+      for (let t of windowTxns) {
+        const val = t.Price * t.Shares;
+        if (t.Action === "BUY") {
+          totalCashIn += val;
+          currentShares += t.Shares;
+        } else {
+          totalCashOut += val;
+          currentShares -= t.Shares;
+        }
+      }
+      totalEndValue += Math.max(0, currentShares) * lastPrice;
     }
 
+    const denominator = totalStartValue + totalCashIn;
+
+    // If we had no skin in the game at start AND didn't buy anything, return 0
+    if (denominator === 0) return 0;
+
+    const numerator = totalEndValue + totalCashOut - totalStartValue - totalCashIn;
+    return (numerator / denominator) * 100;
+  }
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        const tickers = [...new Set(df.map(d => d.Ticker))];
+        const asOfDateJS = asOfDate.toDate();
+
+        // --- 1. Fetch history for ALL tickers (for aggregate window calculations) ---
+        // We need a long enough window to cover lifetime; use earliest transaction date
+        const earliestDate = new Date(Math.min(...df.map(d => d.Date)));
+        const historyByTicker = {};
+
+        await Promise.all(
+          tickers.map(async ticker => {
+            const hist = await fetchTickerHistory(ticker, earliestDate, asOfDateJS);
+            historyByTicker[ticker] = hist;
+          })
+        );
+
+        // --- 2. Compute open holdings ---
+        const results = await Promise.all(
+          tickers.map(async ticker => {
+            const openLots = getOpenLots(ticker, asOfDateJS);
+            const totalShares = openLots.reduce((sum, l) => sum + l.shares, 0);
+            if (totalShares === 0) return null;
+
+            const hist = historyByTicker[ticker] || [];
+            const lastPrice = hist.length ? hist[hist.length - 1].close : openLots[openLots.length - 1].price;
+
+            // 1M return (open lots, price-based)
+            const thirtyDaysAgo = new Date(asOfDateJS);
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const monthly = openLots.reduce((sum, l) => {
+              const startDate = l.date > thirtyDaysAgo ? l.date : thirtyDaysAgo;
+              const startHist = hist.find(q => new Date(q.date) >= startDate);
+              const startPrice = startHist ? startHist.close : l.price;
+              const lotReturn = (lastPrice - startPrice) / startPrice;
+              const lotWeight = (l.shares * lastPrice) / (openLots.reduce((s, o) => s + o.shares * lastPrice, 0));
+              return sum + lotReturn * lotWeight;
+            }, 0) * 100;
+
+            // 1Y return (open lots)
+            const oneYearAgo = new Date(asOfDateJS);
+            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+
+            const yearly = openLots.reduce((sum, l) => {
+              const startDate = l.date > oneYearAgo ? l.date : oneYearAgo;
+              const startHist = hist.find(q => new Date(q.date) >= startDate);
+              const startPrice = startHist ? startHist.close : l.price;
+              const lotReturn = (lastPrice - startPrice) / startPrice;
+              const lotWeight = (l.shares * lastPrice) / (openLots.reduce((s, o) => s + o.shares * lastPrice, 0));
+              return sum + lotReturn * lotWeight;
+            }, 0) * 100;
+
+            // 1D return
+            const twoDaysAgo = new Date(asOfDateJS);
+            twoDaysAgo.setDate(twoDaysAgo.getDate() - 5); // go back 5 days to find prev trading day
+            const recentHist = hist.filter(q => new Date(q.date) >= twoDaysAgo);
+            let dailyReturn = null;
+            if (recentHist.length >= 2) {
+              const prev = recentHist[recentHist.length - 2].close;
+              const curr = recentHist[recentHist.length - 1].close;
+              dailyReturn = ((curr - prev) / prev) * 100;
+            }
+
+            // Lifetime return & XIRR using all lots
+            const { lifetime, xirr } = computeLifetimeMetrics(ticker, asOfDateJS, lastPrice);
+
+            return {
+              Ticker: ticker,
+              Shares: totalShares,
+              Lots: openLots,
+              CurrentPrice: lastPrice,
+              LifetimeReturn: lifetime.toFixed(1),
+              MonthlyReturn: monthly.toFixed(1),
+              YearlyReturn: yearly.toFixed(1),
+              DailyReturn: dailyReturn !== null ? dailyReturn.toFixed(1) : null,
+              CAGR: xirr.toFixed(1),
+              Value: totalShares * lastPrice,
+              Color: openLots[0].Color,
+              LogoUrl: openLots[0].LogoUrl
+            };
+          })
+        );
+
+        const cleaned = results.filter(Boolean);
+        const totalValue = cleaned.reduce((sum, r) => sum + r.Value, 0);
+        const priceMap = {};
+        cleaned.forEach(r => (priceMap[r.Ticker] = r.CurrentPrice));
+
+        // Portfolio XIRR (all tickers, all cashflows including closed)
+        const allTickersEver = [...new Set(df.map(d => d.Ticker))];
+        const fullPriceMap = { ...priceMap };
+        // For closed tickers (not in open holdings), use last known price from history
+        allTickersEver.forEach(ticker => {
+          if (!fullPriceMap[ticker]) {
+            const hist = historyByTicker[ticker] || [];
+            if (hist.length) fullPriceMap[ticker] = hist[hist.length - 1].close;
+          }
+        });
+
+        setPortfolioXIRR(computePortfolioXIRR(asOfDateJS, null, fullPriceMap));
+        cleaned.forEach(r => { r.Weight = (r.Value / totalValue) * 100; });
+        cleaned.sort((a, b) => b.Weight - a.Weight);
+
+        const historyWithoutSpy = Object.fromEntries(
+          Object.entries(historyByTicker).filter(([ticker]) => ticker !== "SPY")
+        );
+
+        // --- 3. Compute aggregate window returns (includes closed positions) ---
+        const [aggLifetime1Y, aggLifetime1M, aggLifetime1D,
+          aggInd1Y, aggInd1M, aggInd1D] = await Promise.all([
+            // Overall portfolio
+            computeAggregateWindowReturn(asOfDateJS, 365, historyByTicker),
+            computeAggregateWindowReturn(asOfDateJS, 30, historyByTicker),
+            computeAggregateWindowReturn(asOfDateJS, 1, historyByTicker),
+            // Individual (non-SPY)
+            computeAggregateWindowReturn(asOfDateJS, 365, historyWithoutSpy),
+            computeAggregateWindowReturn(asOfDateJS, 30, historyWithoutSpy),
+            computeAggregateWindowReturn(asOfDateJS, 1, historyWithoutSpy),
+          ]);
+
+        // Individual-only XIRR (exclude SPY)
+        const indTickers = [...new Set(
+          df.filter(t => t.Ticker !== "SPY").map(t => t.Ticker)
+        )];
+        const indXIRR = computePortfolioXIRR(asOfDateJS, indTickers, fullPriceMap);
+
+        // Lifetime return for summary rows: weighted average across ALL lots ever
+        // We'll use a simple dollar-weighted approach: (total terminal value - total invested) / total invested
+        const computeDollarWeightedLifetime = (tickerFilter) => {
+          const txns = df.filter(d =>
+            d.Date <= asOfDateJS && (!tickerFilter || tickerFilter(d.Ticker))
+          );
+          const totalInvested = txns
+            .filter(t => t.Action === "BUY")
+            .reduce((sum, t) => sum + t.Price * t.Shares, 0);
+
+          let cashflows = 0;
+          // Sell proceeds
+          txns.filter(t => t.Action === "SELL").forEach(t => {
+            cashflows += t.Price * t.Shares;
+          });
+          // Current value of open positions
+          const involvedTickers = [...new Set(txns.map(t => t.Ticker))];
+          involvedTickers.forEach(ticker => {
+            const openLots = getOpenLots(ticker, asOfDateJS);
+            const price = fullPriceMap[ticker] || 0;
+            cashflows += openLots.reduce((s, l) => s + l.shares * price, 0);
+          });
+
+          if (!totalInvested) return 0;
+          return ((cashflows - totalInvested) / totalInvested) * 100;
+        };
+
+        const overallLifetime = computeDollarWeightedLifetime(null);
+        const indLifetime = computeDollarWeightedLifetime(t => t !== "SPY");
+
+        setAggregateMetrics({
+          overall: {
+            lifetime: overallLifetime,
+            yearly: aggLifetime1Y,
+            monthly: aggLifetime1M,
+            daily: aggLifetime1D,
+          },
+          individual: {
+            lifetime: indLifetime,
+            xirr: indXIRR,
+            yearly: aggInd1Y,
+            monthly: aggInd1M,
+            daily: aggInd1D,
+          },
+        });
+
+        // --- 4. SPY counterfactual ---
+        const spyBenchmarkRow = await computeSPYCounterfactual(asOfDateJS);
+        const finalResults = spyBenchmarkRow ? [...cleaned, spyBenchmarkRow] : cleaned;
+
+        setPerformance(finalResults);
+      }
+      catch (e) {
+        console.error("Error loading investment data:", e);
+      }
+      finally {
+        console.log('um')
+        setLoading(false);
+      }
+    }
     load();
   }, [asOfDate]);
+
+  const fmtPct = (val, colorClass = true) => {
+    if (val === null || val === undefined) return <span className="text-slate-400">—</span>;
+
+    let num = parseFloat(val);
+    let displayValue;
+    let isCapped = false;
+
+    // Handle extreme XIRR values
+    if (num > 9999) {
+      displayValue = "9999%";
+      isCapped = true;
+    } else if (num < -999) {
+      displayValue = "-999%";
+      isCapped = true;
+    } else {
+      displayValue = `${num >= 0 ? "" : ""}${num.toFixed(1)}%`;
+    }
+
+    const cls = colorClass ? (num >= 0 ? "text-green-400" : "text-red-400") : "text-blue-400";
+
+    return (
+      <span className={cls} title={isCapped ? `${num.toFixed(2)}%` : ""}>
+        {displayValue}
+      </span>
+    );
+  };
 
   return (
     <section id="investments" className="py-20 bg-slate-900 relative overflow-hidden">
@@ -439,14 +648,14 @@ export default function MyInvestments() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12">
-          {/* Pie Chart */}
+          {/* Pie Chart — unchanged */}
           <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="bg-gradient-to-r from-blue-400/40 to-purple-400/40 backdrop-blur-md rounded-2xl p-8 border border-slate-600/40 hover:border-blue-400/50 transition-all duration-300">
             <h3 className="text-2xl font-bold text-white mb-6">Allocation</h3>
             <div className="w-full h-96">
               <ResponsiveContainer>
                 <PieChart>
                   <Pie
-                    data={performance.filter(p => p.Ticker !== "SPY Counterfactual")} // exclude SPY
+                    data={performance.filter(p => p.Ticker !== "SPY Counterfactual")}
                     dataKey="Weight"
                     nameKey="Ticker"
                     cx="50%"
@@ -456,7 +665,7 @@ export default function MyInvestments() {
                     label={({ name, Weight }) => `${name}: ${Weight.toFixed(1)}%`}
                   >
                     {performance
-                      .filter(p => p.Ticker !== "SPY Counterfactual") // exclude SPY for coloring
+                      .filter(p => p.Ticker !== "SPY Counterfactual")
                       .map((entry, idx) => (
                         <Cell key={idx} fill={entry.Color} />
                       ))}
@@ -468,155 +677,107 @@ export default function MyInvestments() {
           </motion.div>
 
           {/* Holdings Table */}
-          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-300">
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, delay: 0.2 }} className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 hover:border-purple-500/50 transition-all duration-300" style={{ minHeight: '500px' }}>
             <h3 className="text-2xl font-bold text-white mb-6">Holdings</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-slate-300">
-                <thead>
-                  <tr className="text-slate-400 text-sm uppercase tracking-wide border-b border-slate-700/50">
-                    <th className="pb-3">Ticker</th>
-                    <th className="pb-3">Current</th>
-                    <th className="pb-3">Lifetime</th>
-                    <th className="pb-3">XIRR</th>
-                    <th className="pb-3">1M</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700/50">
-                  {/* Stock rows */}
-                  {performance.map((row, idx) => {
-                    // Skip SPY for now; will render at the end
-                    if (row.Ticker === "SPY Counterfactual") return null;
 
-                    return (
-                      <tr key={idx} className="hover:bg-slate-700/30 transition">
-                        <td className="py-3 flex items-center gap-3 font-medium text-white">
-                          <img
-                            src={row.LogoUrl}
-                            alt={`${row.Ticker} logo`}
-                            className="w-6 h-6"
-                            onError={e => e.currentTarget.style.display = 'none'}
-                          />
-                          {row.Ticker}
-                        </td>
+            {loading ? (
+              // 5. Show a simple loader or skeletons
+              <div className="flex flex-col gap-4 animate-pulse">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-10 bg-slate-700/50 rounded w-full" />
+                ))}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-slate-300">
+                  <thead>
+                    <tr className="text-slate-400 text-sm uppercase tracking-wide border-b border-slate-700/50">
+                      <th className="pb-3">Ticker</th>
+                      <th className="pb-3">Price</th>
+                      <th className="pb-3">Lifetime</th>
+                      <th className="pb-3">XIRR</th>
+                      {/* <th className="pb-3">1Y</th> */}
+                      <th className="pb-3">1M</th>
+                      <th className="pb-3">1D</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-700/50">
+                    {/* Individual stock rows (open holdings only) */}
+                    {performance.map((row, idx) => {
+                      if (row.Ticker === "SPY Counterfactual") return null;
 
-                        {/* Current Price */}
-                        <td className="py-3">{row.CurrentPrice != null ? `$${row.CurrentPrice.toFixed(2)}` : "—"}</td>
+                      return (
+                        <tr key={idx} className="hover:bg-slate-700/30 transition">
+                          <td className="py-3 flex items-center gap-3 font-medium text-white">
+                            <img
+                              src={row.LogoUrl}
+                              alt={`${row.Ticker} logo`}
+                              className="w-6 h-6"
+                              onError={e => e.currentTarget.style.display = 'none'}
+                            />
+                            {row.Ticker}
+                          </td>
+                          <td className="py-3">{row.CurrentPrice != null ? `$${row.CurrentPrice.toFixed(2)}` : "—"}</td>
+                          <td className="py-3">{fmtPct(row.LifetimeReturn)}</td>
+                          <td className="py-3">{fmtPct(row.CAGR)}</td>
+                          {/* <td className="py-3">{fmtPct(row.YearlyReturn)}</td> */}
+                          <td className="py-3">{fmtPct(row.MonthlyReturn)}</td>
+                          <td className="py-3">{fmtPct(row.DailyReturn)}</td>
+                        </tr>
+                      );
+                    })}
 
-                        {/* Lifetime Return */}
-                        <td className={`py-3 ${row.LifetimeReturn >= 0 ? "text-green-400" : "text-red-400"}`}>
-                          {row.LifetimeReturn != null ? `${row.LifetimeReturn}%` : "—"}
-                        </td>
+                    {/* ── Overall Portfolio summary row ── */}
+                    {aggregateMetrics && (() => {
+                      const { overall } = aggregateMetrics;
+                      return (
+                        <tr className="bg-slate-600 font-semibold border-t border-slate-500">
+                          <td className="py-3 text-white">Overall Portfolio</td>
+                          <td className="py-3 text-slate-300">—</td>
+                          <td className="py-3">{fmtPct(overall.lifetime)}</td>
+                          <td className="py-3">{fmtPct(portfolioXIRR)}</td>
+                          {/* <td className="py-3">{fmtPct(overall.yearly)}</td> */}
+                          <td className="py-3">{fmtPct(overall.monthly)}</td>
+                          <td className="py-3">{fmtPct(overall.daily)}</td>
+                        </tr>
+                      );
+                    })()}
 
-                        {/* CAGR */}
-                        <td className={`py-3 ${row.CAGR >= 0 ? "text-green-400" : "text-red-400"}`}>
-                          {row.CAGR != null ? `${row.CAGR}%` : "—"}
-                        </td>
+                    {/* ── Individual Holdings summary row (non-SPY) ── */}
+                    {aggregateMetrics && (() => {
+                      const { individual } = aggregateMetrics;
+                      return (
+                        <tr className="bg-slate-600 font-semibold border-t border-slate-500">
+                          <td className="py-3 text-white">Individual Holdings</td>
+                          <td className="py-3 text-slate-300">—</td>
+                          <td className="py-3">{fmtPct(individual.lifetime)}</td>
+                          <td className="py-3">{fmtPct(individual.xirr)}</td>
+                          {/* <td className="py-3">{fmtPct(individual.yearly)}</td> */}
+                          <td className="py-3">{fmtPct(individual.monthly)}</td>
+                          <td className="py-3">{fmtPct(individual.daily)}</td>
+                        </tr>
+                      );
+                    })()}
 
-                        {/* 1M Return */}
-                        <td className={`py-3 ${row.MonthlyReturn != null && row.MonthlyReturn >= 0 ? "text-green-400" : "text-red-400"}`}>
-                          {row.MonthlyReturn != null ? `${row.MonthlyReturn}%` : "—"}
-                        </td>
-                      </tr>
-                    );
-                  })}
-
-                  {/* Overall Portfolio row (stocks only) */}
-                  {performance.length > 0 && (() => {
-                    const totalValue = performance.reduce((sum, p) => p.Ticker === "SPY Counterfactual" ? sum : sum + p.Value, 0);
-
-                    const overallLifetime = performance.reduce((sum, p) =>
-                      p.Ticker === "SPY Counterfactual" ? sum : sum + (p.LifetimeReturn || 0) * p.Value / totalValue, 0
-                    );
-
-                    const overall30D = performance.reduce((sum, p) =>
-                      p.Ticker === "SPY Counterfactual" ? sum : sum + (p.MonthlyReturn || 0) * p.Value / totalValue, 0
-                    );
-
-                    return (
-                      <tr className="bg-slate-600 font-semibold border-t border-slate-500">
-                        <td className="py-3 text-white">Overall Portfolio</td>
-                        <td className="py-3 text-slate-300">—</td>
-
-                        {/* Lifetime % calculated properly */}
-                        <td className={`py-3 ${overallLifetime >= 0 ? "text-green-400" : "text-red-400"}`}>
-                          {overallLifetime.toFixed(2)}%
-                        </td>
-
-                        {/* XIRR is the gold standard CAGR */}
-                        <td className={`py-3 ${portfolioXIRR !== null && portfolioXIRR >= 0 ? "text-green-400" : "text-red-400"}`}>
-                          {portfolioXIRR?.toFixed(2)}%
-                        </td>
-
-                        {/* 1M return */}
-                        <td className={`py-3 ${overall30D >= 0 ? "text-green-400" : "text-red-400"}`}>
-                          {overall30D.toFixed(2)}%
-                        </td>
-                      </tr>
-                    );
-                  })()}
-
-                  {/* Indv only */}
-                  {performance.length > 0 && (() => {
-                    const nonSpy = performance.filter(
-                      p => p.Ticker !== "SPY" && p.Ticker !== "SPY Counterfactual"
-                    );
-
-                    if (!nonSpy.length) return null;
-
-                    const totalValue = nonSpy.reduce((sum, p) => sum + p.Value, 0);
-
-                    const lifetime = nonSpy.reduce(
-                      (sum, p) => sum + (p.LifetimeReturn || 0) * p.Value / totalValue,
-                      0
-                    );
-
-                    const monthly = nonSpy.reduce(
-                      (sum, p) => sum + (p.MonthlyReturn || 0) * p.Value / totalValue,
-                      0
-                    );
-
-                    const priceMap = {};
-                    nonSpy.forEach(p => (priceMap[p.Ticker] = p.CurrentPrice));
-
-                    const tickers = nonSpy.map(p => p.Ticker);
-                    const xirrVal = computeFilteredXIRR(asOfDate.toDate(), tickers, priceMap);
-
-                    return (
-                      <tr className="bg-slate-600 font-semibold border-t border-slate-500">
-                        <td className="py-3 text-white">Individual Holdings</td>
-                        <td className="py-3 text-slate-300">—</td>
-
-                        <td className={`py-3 ${lifetime >= 0 ? "text-green-400" : "text-red-400"}`}>
-                          {lifetime.toFixed(2)}%
-                        </td>
-
-                        <td className={`py-3 ${xirrVal >= 0 ? "text-green-400" : "text-red-400"}`}>
-                          {xirrVal.toFixed(2)}%
-                        </td>
-
-                        <td className={`py-3 ${monthly >= 0 ? "text-green-400" : "text-red-400"}`}>
-                          {monthly.toFixed(2)}%
-                        </td>
-                      </tr>
-                    );
-                  })()}
-
-                  {/* SPY Counterfactual benchmark as last row */}
-                  {performance.find(p => p.Ticker === "SPY Counterfactual") && (() => {
-                    const spy = performance.find(p => p.Ticker === "SPY Counterfactual");
-                    return (
-                      <tr className="bg-slate-600 font-semibold border-t border-slate-500">
-                        <td className="py-3 text-white">{spy.Ticker}</td>
-                        <td className="py-3 text-slate-300">—</td>
-                        <td className="py-3 text-blue-400">{spy.LifetimeReturn}%</td>
-                        <td className="py-3 text-blue-400">{spy.CAGR}%</td>
-                        <td className="py-3 text-blue-400">{performance.find(p => p.Ticker === "SPY")?.MonthlyReturn || "—"}%</td>
-                      </tr>
-                    );
-                  })()}
-                </tbody>
-              </table>
-            </div>
+                    {/* ── SPY Counterfactual benchmark row ── */}
+                    {performance.find(p => p.Ticker === "SPY Counterfactual") && (() => {
+                      const spyCounter = performance.find(p => p.Ticker === "SPY Counterfactual");
+                      return (
+                        <tr className="bg-slate-600 font-semibold border-t border-slate-500">
+                          <td className="py-3 text-white">{spyCounter.Ticker}</td>
+                          <td className="py-3 text-slate-300">—</td>
+                          <td className="py-3"><span className="text-blue-400">{spyCounter.LifetimeReturn}%</span></td>
+                          <td className="py-3"><span className="text-blue-400">{spyCounter.CAGR}%</span></td>
+                          {/* <td className="py-3"><span className="text-blue-400">{performance.find(p => p.Ticker === "SPY")?.YearlyReturn ?? "—"}{performance.find(p => p.Ticker === "SPY")?.YearlyReturn != null ? "%" : ""}</span></td> */}
+                          <td className="py-3"><span className="text-blue-400">{spyCounter.MonthlyReturn}%</span></td>
+                          <td className="py-3"><span className="text-blue-400">{spyCounter.DailyReturn}%</span></td>
+                        </tr>
+                      );
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </motion.div>
         </div>
       </div>
