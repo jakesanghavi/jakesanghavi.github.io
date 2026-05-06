@@ -242,24 +242,32 @@ export default function MyInvestments() {
   const [loading, setLoading] = useState(true);
 
   async function computeSPYCounterfactual(asOfDate) {
+    // 1. Filter transactions to only those on or before the selected date
     const txns = df.filter(d => d.Date <= asOfDate).sort((a, b) => a.Date - b.Date);
     if (!txns.length) return null;
 
+    // 2. Fetch SPY history
     const earliestDate = txns[0].Date;
     const spyRes = await fetch(`${ROUTE}/api/stocks/SPY?start=${earliestDate.toISOString()}&end=${asOfDate.toISOString()}`);
     const spyData = await spyRes.json();
-    const spyHist = spyData.quotes || [];
+
+    // 3. CRITICAL: Slice history so "today" is the asOfDate, not the literal today
+    const spyHist = (spyData.quotes || []).filter(q => new Date(q.date) <= asOfDate);
     if (!spyHist.length) return null;
 
+    // Helper: Find the closest price ON or BEFORE a specific date
     const getSpyPriceOn = (date) => {
-      const match = spyHist.find(q => new Date(q.date) >= date);
-      return match ? match.close : spyHist[spyHist.length - 1].close;
+      return spyHist.reduce((prev, curr) => {
+        const currDate = new Date(curr.date);
+        return (currDate <= date) ? curr : prev;
+      }, spyHist[0]).close;
     };
 
     const currentSpyPrice = spyHist[spyHist.length - 1].close;
     let shadowSpyShares = 0;
     const cashflows = [];
 
+    // 4. Build the Shadow Portfolio up to asOfDate
     for (let t of txns) {
       const spyPrice = getSpyPriceOn(t.Date);
       const tradeValue = t.Price * t.Shares;
@@ -276,19 +284,28 @@ export default function MyInvestments() {
     const finalValue = shadowSpyShares * currentSpyPrice;
     const cashflowsWithTerminal = [...cashflows, { date: asOfDate, amount: finalValue }];
 
+    // 5. Calculate Lifetime Metrics
     const totalInflows = cashflowsWithTerminal.filter(c => c.amount > 0).reduce((a, b) => a + b.amount, 0);
     const totalOutflows = Math.abs(cashflowsWithTerminal.filter(c => c.amount < 0).reduce((a, b) => a + b.amount, 0));
     const lifetimeReturn = totalOutflows > 0 ? ((totalInflows - totalOutflows) / totalOutflows) * 100 : 0;
     const spyXirr = xirr(cashflowsWithTerminal) * 100;
 
+    // 6. Calculate Window Returns (1D, 1M, 1Y)
     const computeShadowWindowReturn = (days) => {
+      // Special handling for 1D to ensure it works with weekends/holidays
+      if (days === 1) {
+        if (spyHist.length < 2) return 0;
+        const currPrice = spyHist[spyHist.length - 1].close;
+        const prevPrice = spyHist[spyHist.length - 2].close;
+        return ((currPrice - prevPrice) / prevPrice) * 100;
+      }
+
       const dStart = new Date(asOfDate);
       dStart.setDate(dStart.getDate() - days);
       dStart.setHours(0, 0, 0, 0);
 
       const startPrice = getSpyPriceOn(dStart);
 
-      // Calculate shares held specifically at the start of this window
       let sharesAtStart = 0;
       let windowCashIn = 0;
       let windowCashOut = 0;
@@ -306,19 +323,18 @@ export default function MyInvestments() {
       }
 
       const startVal = sharesAtStart * startPrice;
-      const endVal = shadowSpyShares * currentSpyPrice;
       const denominator = startVal + windowCashIn;
 
       return denominator > 0
-        ? ((endVal + windowCashOut - startVal - windowCashIn) / denominator) * 100
+        ? ((finalValue + windowCashOut - startVal - windowCashIn) / denominator) * 100
         : 0;
     };
 
     return {
       Ticker: "SPY Counterfactual",
       CurrentPrice: currentSpyPrice,
-      LifetimeReturn: lifetimeReturn.toFixed(2),
-      CAGR: spyXirr.toFixed(2),
+      LifetimeReturn: lifetimeReturn.toFixed(1),
+      CAGR: spyXirr.toFixed(1),
       MonthlyReturn: computeShadowWindowReturn(30).toFixed(1),
       YearlyReturn: computeShadowWindowReturn(365).toFixed(1),
       DailyReturn: computeShadowWindowReturn(1).toFixed(1),
@@ -328,7 +344,6 @@ export default function MyInvestments() {
       Weight: 0
     };
   }
-
   /**
    * Compute aggregate metrics for summary rows, accounting for ALL positions
    * (including those opened and closed within the window).
@@ -347,11 +362,10 @@ export default function MyInvestments() {
    *   - Stocks bought AND sold mid-window: return from buy to sell
    */
   async function computeAggregateWindowReturn(asOfDate, windowDays, historyByTicker, spyOnly = false) {
-    // 1. Normalize asOfDate to the very end of the day
     const dEnd = new Date(asOfDate);
     dEnd.setHours(23, 59, 59, 999);
 
-    // 2. Normalize windowStart to the very beginning of the day X days ago
+    // 1. Define window start for Monthly/Yearly
     const dStart = new Date(asOfDate);
     dStart.setDate(dStart.getDate() - windowDays);
     dStart.setHours(0, 0, 0, 0);
@@ -366,24 +380,40 @@ export default function MyInvestments() {
     for (let ticker of allTickers) {
       if (spyOnly && ticker !== "SPY") continue;
       const hist = historyByTicker[ticker];
-      if (!hist || hist.length === 0) continue;
+      if (!hist || hist.length < 2) continue; // Need at least 2 points for a 1D return
 
-      // FIND START PRICE: The closest closing price ON or BEFORE dStart
-      const startPrice = hist.reduce((prev, curr) => {
-        const currDate = new Date(curr.date);
-        return (currDate <= dStart) ? curr : prev;
-      }, hist[0]).close;
+      const lastIdx = hist.length - 1;
+      const lastPrice = hist[lastIdx].close;
 
-      const lastPrice = hist[hist.length - 1].close;
+      // --- SPECIAL HANDLING FOR 1D ---
+      let startPrice;
+      let startShares;
 
-      // Get holdings at the start of the window
-      const lotsAtWindowStart = getOpenLots(ticker, dStart);
-      const startShares = lotsAtWindowStart.reduce((s, l) => s + l.shares, 0);
+      if (windowDays === 1) {
+        // For 1D, startPrice is the previous trading day's close
+        startPrice = hist[lastIdx - 1].close;
+
+        // Get holdings as they were at the close of the PREVIOUS trading day
+        const prevDate = new Date(hist[lastIdx - 1].date);
+        const lotsAtPrevClose = getOpenLots(ticker, prevDate);
+        startShares = lotsAtPrevClose.reduce((s, l) => s + l.shares, 0);
+      } else {
+        // Monthly/Yearly logic
+        startPrice = hist.reduce((prev, curr) => {
+          const currDate = new Date(curr.date);
+          return (currDate <= dStart) ? curr : prev;
+        }, hist[0]).close;
+
+        const lotsAtWindowStart = getOpenLots(ticker, dStart);
+        startShares = lotsAtWindowStart.reduce((s, l) => s + l.shares, 0);
+      }
+
       totalStartValue += startShares * startPrice;
 
-      // Capture activity WITHIN the window
+      // Capture activity WITHIN the window (between the calculated start and now)
+      const windowStartLimit = windowDays === 1 ? new Date(hist[lastIdx - 1].date) : dStart;
       const windowTxns = df.filter(d =>
-        d.Ticker === ticker && d.Date > dStart && d.Date <= dEnd
+        d.Ticker === ticker && d.Date > windowStartLimit && d.Date <= dEnd
       );
 
       let currentShares = startShares;
@@ -401,30 +431,32 @@ export default function MyInvestments() {
     }
 
     const denominator = totalStartValue + totalCashIn;
-
-    // If we had no skin in the game at start AND didn't buy anything, return 0
     if (denominator === 0) return 0;
 
     const numerator = totalEndValue + totalCashOut - totalStartValue - totalCashIn;
     return (numerator / denominator) * 100;
   }
-
   useEffect(() => {
     async function load() {
       setLoading(true);
       try {
-        const tickers = [...new Set(df.map(d => d.Ticker))];
         const asOfDateJS = asOfDate.toDate();
 
-        // --- 1. Fetch history for ALL tickers (for aggregate window calculations) ---
-        // We need a long enough window to cover lifetime; use earliest transaction date
-        const earliestDate = new Date(Math.min(...df.map(d => d.Date)));
+        // 1. THIS IS THE KEY: Filter the source data immediately
+        const txnsAtDate = df.filter(t => t.Date <= asOfDateJS);
+
+        // Get only tickers that existed up to this date
+        const tickers = [...new Set(txnsAtDate.map(d => d.Ticker))];
+
+        // 2. Truncate history as discussed
+        const earliestDate = new Date(Math.min(...txnsAtDate.map(d => d.Date)));
         const historyByTicker = {};
 
         await Promise.all(
           tickers.map(async ticker => {
-            const hist = await fetchTickerHistory(ticker, earliestDate, asOfDateJS);
-            historyByTicker[ticker] = hist;
+            const fullHist = await fetchTickerHistory(ticker, earliestDate, asOfDateJS);
+            // Only keep history points on or before our selected date
+            historyByTicker[ticker] = fullHist.filter(q => new Date(q.date) <= asOfDateJS);
           })
         );
 
@@ -436,7 +468,10 @@ export default function MyInvestments() {
             if (totalShares === 0) return null;
 
             const hist = historyByTicker[ticker] || [];
-            const lastPrice = hist.length ? hist[hist.length - 1].close : openLots[openLots.length - 1].price;
+            // The 'lastPrice' is now the price AS OF the selected date
+            const lastPrice = hist.length
+              ? hist[hist.length - 1].close
+              : (openLots.length ? openLots[openLots.length - 1].price : 0);
 
             // 1M return (open lots, price-based)
             const thirtyDaysAgo = new Date(asOfDateJS);
@@ -468,10 +503,11 @@ export default function MyInvestments() {
             const twoDaysAgo = new Date(asOfDateJS);
             twoDaysAgo.setDate(twoDaysAgo.getDate() - 5); // go back 5 days to find prev trading day
             const recentHist = hist.filter(q => new Date(q.date) >= twoDaysAgo);
+            const dayIndices = hist.length;
             let dailyReturn = null;
-            if (recentHist.length >= 2) {
-              const prev = recentHist[recentHist.length - 2].close;
-              const curr = recentHist[recentHist.length - 1].close;
+            if (dayIndices >= 2) {
+              const curr = hist[dayIndices - 1].close;
+              const prev = hist[dayIndices - 2].close;
               dailyReturn = ((curr - prev) / prev) * 100;
             }
 
