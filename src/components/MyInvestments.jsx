@@ -8,6 +8,7 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
+  ["BUY", "Applied Optoelectronics", "AAOI", "2026-06-09", 163.01, 0.0025, '#543b89', "https://logo.stocklight.com/NASDAQ/AAOI_original.png", "Checking"],
   ["BUY", "MP Materials", "MP", "2026-05-08", 72.56, 0.005, '#072760', "https://companieslogo.com/img/orig/MP-a33ee156.png?t=1720244492", "Checking"],
   ["SELL", "Zeta", "ZETA", "2026-05-06", 17.27, 0.0215, '#6535ab', "https://api.iconify.design/token:zeta-chain.svg?color=%236535AB", "Checking"],
   ["BUY", "Micron", "MU", "2026-05-04", 577.17, 0.001, '#9e03cc', "https://companieslogo.com/img/orig/MU.D-7d8b6366.png?t=1740419775", "Checking"],
