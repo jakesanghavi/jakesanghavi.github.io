@@ -8,6 +8,11 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
+  ["BUY", "Smarteye", "SEYE", "2026-06-23", 8.53, 0.055, '#f7d941', "https://s3-symbol-logo.tradingview.com/smart-eye--600.png", "Checking"],
+  ["SELL", "MP Materials", "MP", "2026-06-23", 58.80, 0.005, '#072760', "https://companieslogo.com/img/orig/MP-a33ee156.png?t=1720244492", "Checking"],
+  ["SELL", "Iren", "IREN", "2026-06-23", 54.77, 0.005, '#70da7e', "https://iren.com/icons/logo.svg?dpl=947", "Checking"],
+  ["BUY", "Sivers Semiconductors", "SIVEF", "2026-06-22", 10.44, 0.05, '#05a9ae', "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9eXdBEjoyMPUjpN3Y4DmoSuMqi5-2MU7tmyMGHNIENw&s=10", "Checking"],
+  ["BUY", "LPKF Laser & Electronics", "LPKFF", "2026-06-18", 30.17, 0.02, '#024b87', "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoxhb_muDz9cplptu8ke5fzcGzhZ4pzFo0eLJJHzF3&s", "Checking"],
   ["BUY", "Applied Optoelectronics", "AAOI", "2026-06-09", 163.01, 0.0025, '#543b89', "https://logo.stocklight.com/NASDAQ/AAOI_original.png", "Checking"],
   ["BUY", "MP Materials", "MP", "2026-05-08", 72.56, 0.005, '#072760', "https://companieslogo.com/img/orig/MP-a33ee156.png?t=1720244492", "Checking"],
   ["SELL", "Zeta", "ZETA", "2026-05-06", 17.27, 0.0215, '#6535ab', "https://api.iconify.design/token:zeta-chain.svg?color=%236535AB", "Checking"],
