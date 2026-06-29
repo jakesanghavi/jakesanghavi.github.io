@@ -8,7 +8,7 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
-  ["BUY", "Smarteye", "SEYE.ST", "2026-06-23", 82.48, 0.055, '#f7d941', "https://s3-symbol-logo.tradingview.com/smart-eye--600.png", "Checking"],
+  ["BUY", "Smarteye", "SEYE.ST", "2026-06-23", 8.53, 0.055, '#f7d941', "https://s3-symbol-logo.tradingview.com/smart-eye--600.png", "Checking"],
   ["SELL", "MP Materials", "MP", "2026-06-23", 58.80, 0.005, '#072760', "https://companieslogo.com/img/orig/MP-a33ee156.png?t=1720244492", "Checking"],
   ["SELL", "Iren", "IREN", "2026-06-23", 54.77, 0.005, '#70da7e', "https://iren.com/icons/logo.svg?dpl=947", "Checking"],
   ["BUY", "Sivers Semiconductors", "SIVEF", "2026-06-22", 10.44, 0.05, '#05a9ae', "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9eXdBEjoyMPUjpN3Y4DmoSuMqi5-2MU7tmyMGHNIENw&s=10", "Checking"],
@@ -70,6 +70,26 @@ const rawData = [
   ["BUY", "United Airlines", "UAL", "2021-06-18", 54.43, 0.0036, '#0a39a3', "https://api.iconify.design/simple-icons:united-airlines.svg?color=%230A39A3", "Checking"],
   ["BUY", "SPY", "SPY", "2021-03-05", 376.7, 0.004, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg", "Checking"]
 ];
+
+const getExchangeCurrencyPair = (ticker) => {
+  if (!ticker.includes('.')) return null;
+  
+  const suffix = ticker.split('.').pop().toUpperCase();
+  
+  // Map common Yahoo Finance exchange suffixes to their base currencies
+  const suffixToCurrency = {
+    'ST': 'SEK', // Stockholm (Sweden) -> SEKUSD=X
+    'L':  'GBP', // London (UK) -> GBPUSD=X
+    'DE': 'EUR', // XETRA (Germany) -> EURUSD=X
+    'PA': 'EUR', // Paris (France) -> EURUSD=X
+    'TO': 'CAD', // Toronto (Canada) -> CADUSD=X
+    'AX': 'AUD', // Australia -> AUDUSD=X
+    'JK': 'IDR', // Jakarta (Indonesia) -> IDRUSD=X
+  };
+  
+  const currency = suffixToCurrency[suffix];
+  return currency ? `${currency}USD=X` : null;
+}
 
 // Map to structured objects
 const df = rawData.map(([Action, Company, Ticker, dateStr, Price, Shares, Color, LogoUrl]) => ({
@@ -184,9 +204,67 @@ function getOpenLots(ticker, asOfDate) {
 
 // Fetch historical prices for a ticker between two dates
 async function fetchTickerHistory(ticker, startDate, endDate) {
+  // 1. Fetch the primary ticker data
   const res = await fetch(`${ROUTE}/api/stocks/${ticker}?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
   const hist = await res.json();
-  return hist.quotes || [];
+  let quotes = hist.quotes || [];
+  
+  // 2. Identify if this ticker requires a foreign currency conversion
+  const fxPair = getExchangeCurrencyPair(ticker);
+  
+  if (fxPair && quotes.length > 0) {
+    try {
+      // 3. Fetch the corresponding FX historical currency rates for the same period
+      const fxRes = await fetch(`${ROUTE}/api/stocks/${fxPair}?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
+      const fxHist = await fxRes.json();
+      const fxQuotes = fxHist.quotes || [];
+      
+      // Create a rapid lookup dictionary for the FX rate mapped by date string "YYYY-MM-DD"
+      const fxLookup = {};
+      fxQuotes.forEach(q => {
+        if (q.date && q.close) {
+          const dateKey = new Date(q.date).toISOString().split('T')[0];
+          fxLookup[dateKey] = q.close;
+        }
+      });
+      
+      // Keep track of a fallback rate in case of holiday market closures
+      let lastKnownRate = fxQuotes.length > 0 ? fxQuotes[0].close : 1;
+      
+      // Special validation flag for London Stock Exchange assets quoted in Pence (GBp) instead of Pounds (GBP)
+      const isLondonPence = ticker.toUpperCase().endsWith('.L');
+
+      // 4. Transform historical metrics to USD values
+      quotes = quotes.map(quote => {
+        const quoteDateKey = new Date(quote.date).toISOString().split('T')[0];
+        
+        // Find the matching exchange rate for the day, or roll forward the last known rate
+        let currentRate = fxLookup[quoteDateKey] || lastKnownRate;
+        lastKnownRate = currentRate; 
+        
+        // London stock exchange structural variance handler
+        if (isLondonPence) {
+          currentRate = currentRate / 100;
+        }
+        
+        return {
+          ...quote,
+          open:  quote.open  ? Number((quote.open * currentRate).toFixed(4)) : quote.open,
+          high:  quote.high  ? Number((quote.high * currentRate).toFixed(4)) : quote.high,
+          low:   quote.low   ? Number((quote.low * currentRate).toFixed(4)) : quote.low,
+          close: quote.close ? Number((quote.close * currentRate).toFixed(4)) : quote.close,
+          // Track conversion rate applied for debugging safety
+          fxRateApplied: currentRate
+        };
+      });
+      
+    } catch (fxError) {
+      console.error(`Failed converting currency for ticker ${ticker} using pair ${fxPair}:`, fxError);
+      // Fallback: returns native values cleanly rather than breaking UI layout trees entirely
+    }
+  }
+  
+  return quotes;
 }
 
 // Calculate lifetime return & XIRR for a single ticker across all lots (open + closed)
