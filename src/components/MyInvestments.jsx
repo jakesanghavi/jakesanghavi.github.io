@@ -8,7 +8,7 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
-  ["BUY", "Smarteye", "SEYE.ST", "2026-06-23", 8.53, 0.055, '#f7d941', "https://s3-symbol-logo.tradingview.com/smart-eye--600.png", "Checking"],
+  ["BUY", "Smarteye", "SEYE.ST", "2026-06-23", 82.48, 0.055, '#f7d941', "https://s3-symbol-logo.tradingview.com/smart-eye--600.png", "Checking"],
   ["SELL", "MP Materials", "MP", "2026-06-23", 58.80, 0.005, '#072760', "https://companieslogo.com/img/orig/MP-a33ee156.png?t=1720244492", "Checking"],
   ["SELL", "Iren", "IREN", "2026-06-23", 54.77, 0.005, '#70da7e', "https://iren.com/icons/logo.svg?dpl=947", "Checking"],
   ["BUY", "Sivers Semiconductors", "SIVEF", "2026-06-22", 10.44, 0.05, '#05a9ae', "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9eXdBEjoyMPUjpN3Y4DmoSuMqi5-2MU7tmyMGHNIENw&s=10", "Checking"],
