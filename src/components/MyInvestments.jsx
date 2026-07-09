@@ -77,6 +77,7 @@ const rawData = [
 
 const openLotsCache = {};
 const historyLookup = {};
+const spyPriceLookup = {};
 
 const getExchangeCurrencyPair = (ticker) => {
   if (!ticker.includes('.')) return null;
@@ -334,6 +335,14 @@ export default function MyInvestments() {
   // { overall: {lifetime, xirr, monthly, yearly, daily}, individual: {...}, spy: {...} }
   const [aggregateMetrics, setAggregateMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [pieAnimated, setPieAnimated] = useState(true);
+
+  useEffect(() => {
+    if (!loading) {
+      const timer = setTimeout(() => setPieAnimated(false), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, asOfDate]);
 
   async function computeSPYCounterfactual(asOfDate, hbt) {
     // 1. Filter transactions to only those on or before the selected date
@@ -342,8 +351,8 @@ export default function MyInvestments() {
 
     // 2. Fetch SPY history
     const earliestDate = txns[0].Date;
-    const spyRes = await fetch(`${ROUTE}/api/stocks/SPY?start=${earliestDate.toISOString()}&end=${asOfDate.toISOString()}`);
-    const spyData = await spyRes.json();
+    // const spyRes = await fetch(`${ROUTE}/api/stocks/SPY?start=${earliestDate.toISOString()}&end=${asOfDate.toISOString()}`);
+    // const spyData = await spyRes.json();
 
     // 3. CRITICAL: Slice history so "today" is the asOfDate, not the literal today
     const spyHist = hbt
@@ -351,12 +360,13 @@ export default function MyInvestments() {
         new Date(q.date) <= asOfDate);
     if (!spyHist.length) return null;
 
+    spyHist.forEach(q => {
+      spyPriceLookup[q.date.slice(0, 10)] = q.close;
+    });
+
     // Helper: Find the closest price ON or BEFORE a specific date
     const getSpyPriceOn = (date) => {
-      return spyHist.reduce((prev, curr) => {
-        const currDate = new Date(curr.date);
-        return (currDate <= date) ? curr : prev;
-      }, spyHist[0]).close;
+      return spyPriceLookup[date.toISOString().slice(0, 10)]
     };
 
     const currentSpyPrice = spyHist[spyHist.length - 1].close;
@@ -553,6 +563,7 @@ export default function MyInvestments() {
         const earliestDate = new Date(Math.min(...txnsAtDate.map(d => d.Date)));
         const historyByTicker = {};
 
+        // OLD LOOKUP O()
         await Promise.all(
           tickers.map(async ticker => {
             const fullHist = await fetchTickerHistory(ticker, earliestDate, asOfDateJS);
@@ -560,6 +571,34 @@ export default function MyInvestments() {
             historyByTicker[ticker] = fullHist.filter(q => new Date(q.date) <= asOfDateJS);
           })
         );
+        //////////////////
+        // const res = await fetch(`${ROUTE}/api/stocks/history`, {
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json"
+        //   },
+        //   body: JSON.stringify({
+        //     tickers,
+        //     start: earliestDate,
+        //     end: asOfDateJS
+        //   })
+        // });
+
+        // const allHistory = await res.json();
+
+        // tickers.forEach(ticker => {
+        //   const hist = allHistory[ticker] || [];
+
+        //   historyByTicker[ticker] = hist;
+
+        //   historyLookup[ticker] = Object.fromEntries(
+        //     hist.map(q => [
+        //       q.date.slice(0, 10),
+        //       q
+        //     ])
+        //   );
+        // });
+        /////////////////
 
         tickers.forEach(ticker => {
           historyLookup[ticker] = {};
@@ -902,6 +941,9 @@ export default function MyInvestments() {
                     innerRadius={60}
                     outerRadius={120}
                     label={({ name, Weight }) => `${name}: ${Weight.toFixed(1)}%`}
+                    // animationDuration={700}
+                    animationBegin={0}
+                    isAnimationActive={true}
                   >
                     {performance
                       .filter(p => p.Ticker !== "SPY Counterfactual")

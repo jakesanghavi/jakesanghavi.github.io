@@ -4,6 +4,7 @@ import YahooFinance from "yahoo-finance2";
 import { ORIGINS } from "../constants.js";
 
 const app = express();
+app.use(express.json());
 const yahooFinance = new YahooFinance();
 
 app.use(cors({
@@ -75,6 +76,39 @@ app.get("/api/stocks/:ticker/financials", async (req, res) => {
   } catch (err) {
     console.error(`Failed to fetch ${ticker} financials:`, err);
     res.status(500).json({ error: "Failed to fetch financials" });
+  }
+});
+
+app.post("/api/stocks/history", async (req, res) => {
+  const { tickers, start, end } = req.body;
+
+  try {
+    const results = {};
+
+    await Promise.all(
+      tickers.map(async (ticker) => {
+        try {
+          const result = await yahooFinance.chart(ticker, {
+            period1: start,
+            period2: end,
+            interval: "1d"
+          });
+
+          results[ticker] = result.quotes || [];
+        } catch (err) {
+          console.error(`Failed to fetch ${ticker}:`, err);
+          results[ticker] = [];
+        }
+      })
+    );
+
+    res.json(results);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      error: "Failed to fetch histories"
+    });
   }
 });
 
