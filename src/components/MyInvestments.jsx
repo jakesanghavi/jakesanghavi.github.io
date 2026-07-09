@@ -77,20 +77,20 @@ const rawData = [
 
 const getExchangeCurrencyPair = (ticker) => {
   if (!ticker.includes('.')) return null;
-  
+
   const suffix = ticker.split('.').pop().toUpperCase();
-  
+
   // Map common Yahoo Finance exchange suffixes to their base currencies
   const suffixToCurrency = {
     'ST': 'SEK', // Stockholm (Sweden) -> SEKUSD=X
-    'L':  'GBP', // London (UK) -> GBPUSD=X
+    'L': 'GBP', // London (UK) -> GBPUSD=X
     'DE': 'EUR', // XETRA (Germany) -> EURUSD=X
     'PA': 'EUR', // Paris (France) -> EURUSD=X
     'TO': 'CAD', // Toronto (Canada) -> CADUSD=X
     'AX': 'AUD', // Australia -> AUDUSD=X
     'JK': 'IDR', // Jakarta (Indonesia) -> IDRUSD=X
   };
-  
+
   const currency = suffixToCurrency[suffix];
   return currency ? `${currency}USD=X` : null;
 }
@@ -212,17 +212,17 @@ async function fetchTickerHistory(ticker, startDate, endDate) {
   const res = await fetch(`${ROUTE}/api/stocks/${ticker}?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
   const hist = await res.json();
   let quotes = hist.quotes || [];
-  
+
   // 2. Identify if this ticker requires a foreign currency conversion
   const fxPair = getExchangeCurrencyPair(ticker);
-  
+
   if (fxPair && quotes.length > 0) {
     try {
       // 3. Fetch the corresponding FX historical currency rates for the same period
       const fxRes = await fetch(`${ROUTE}/api/stocks/${fxPair}?start=${startDate.toISOString()}&end=${endDate.toISOString()}`);
       const fxHist = await fxRes.json();
       const fxQuotes = fxHist.quotes || [];
-      
+
       // Create a rapid lookup dictionary for the FX rate mapped by date string "YYYY-MM-DD"
       const fxLookup = {};
       fxQuotes.forEach(q => {
@@ -231,43 +231,43 @@ async function fetchTickerHistory(ticker, startDate, endDate) {
           fxLookup[dateKey] = q.close;
         }
       });
-      
+
       // Keep track of a fallback rate in case of holiday market closures
       let lastKnownRate = fxQuotes.length > 0 ? fxQuotes[0].close : 1;
-      
+
       // Special validation flag for London Stock Exchange assets quoted in Pence (GBp) instead of Pounds (GBP)
       const isLondonPence = ticker.toUpperCase().endsWith('.L');
 
       // 4. Transform historical metrics to USD values
       quotes = quotes.map(quote => {
         const quoteDateKey = new Date(quote.date).toISOString().split('T')[0];
-        
+
         // Find the matching exchange rate for the day, or roll forward the last known rate
         let currentRate = fxLookup[quoteDateKey] || lastKnownRate;
-        lastKnownRate = currentRate; 
-        
+        lastKnownRate = currentRate;
+
         // London stock exchange structural variance handler
         if (isLondonPence) {
           currentRate = currentRate / 100;
         }
-        
+
         return {
           ...quote,
-          open:  quote.open  ? Number((quote.open * currentRate).toFixed(4)) : quote.open,
-          high:  quote.high  ? Number((quote.high * currentRate).toFixed(4)) : quote.high,
-          low:   quote.low   ? Number((quote.low * currentRate).toFixed(4)) : quote.low,
+          open: quote.open ? Number((quote.open * currentRate).toFixed(4)) : quote.open,
+          high: quote.high ? Number((quote.high * currentRate).toFixed(4)) : quote.high,
+          low: quote.low ? Number((quote.low * currentRate).toFixed(4)) : quote.low,
           close: quote.close ? Number((quote.close * currentRate).toFixed(4)) : quote.close,
           // Track conversion rate applied for debugging safety
           fxRateApplied: currentRate
         };
       });
-      
+
     } catch (fxError) {
       console.error(`Failed converting currency for ticker ${ticker} using pair ${fxPair}:`, fxError);
       // Fallback: returns native values cleanly rather than breaking UI layout trees entirely
     }
   }
-  
+
   return quotes;
 }
 
@@ -451,80 +451,79 @@ export default function MyInvestments() {
    *   - Stocks sold mid-window: return from windowStart (or buy) to sell date
    *   - Stocks bought AND sold mid-window: return from buy to sell
    */
-  async function computeAggregateWindowReturn(asOfDate, windowDays, historyByTicker, spyOnly = false) {
-    const dEnd = new Date(asOfDate);
-    dEnd.setHours(23, 59, 59, 999);
+  async function computeAggregateWindowReturn(
+    asOfDate,
+    windowDays,
+    historyByTicker,
+    spyOnly = false
+  ) {
+    const endDate = new Date(asOfDate);
 
-    // 1. Define window start for Monthly/Yearly
-    const dStart = new Date(asOfDate);
-    dStart.setDate(dStart.getDate() - windowDays);
-    dStart.setHours(0, 0, 0, 0);
+    const startDate = new Date(asOfDate);
+    startDate.setDate(startDate.getDate() - windowDays);
+    startDate.setHours(0, 0, 0, 0);
 
-    let totalStartValue = 0;
-    let totalEndValue = 0;
-    let totalCashIn = 0;
-    let totalCashOut = 0;
+    const tickers = [...new Set(df.map(d => d.Ticker))]
+      .filter(t => !spyOnly || t === "SPY");
 
-    const allTickers = [...new Set(df.map(d => d.Ticker))];
+    // Build all trading dates inside the window
+    const tradingDays = new Set();
 
-    for (let ticker of allTickers) {
-      if (spyOnly && ticker !== "SPY") continue;
-      const hist = historyByTicker[ticker];
-      if (!hist || hist.length < 2) continue; // Need at least 2 points for a 1D return
-
-      const lastIdx = hist.length - 1;
-      const lastPrice = hist[lastIdx].close;
-
-      // --- SPECIAL HANDLING FOR 1D ---
-      let startPrice;
-      let startShares;
-
-      if (windowDays === 1) {
-        // For 1D, startPrice is the previous trading day's close
-        startPrice = hist[lastIdx - 1].close;
-
-        // Get holdings as they were at the close of the PREVIOUS trading day
-        const prevDate = new Date(hist[lastIdx - 1].date);
-        const lotsAtPrevClose = getOpenLots(ticker, prevDate);
-        startShares = lotsAtPrevClose.reduce((s, l) => s + l.shares, 0);
-      } else {
-        // Monthly/Yearly logic
-        startPrice = hist.reduce((prev, curr) => {
-          const currDate = new Date(curr.date);
-          return (currDate <= dStart) ? curr : prev;
-        }, hist[0]).close;
-
-        const lotsAtWindowStart = getOpenLots(ticker, dStart);
-        startShares = lotsAtWindowStart.reduce((s, l) => s + l.shares, 0);
-      }
-
-      totalStartValue += startShares * startPrice;
-
-      // Capture activity WITHIN the window (between the calculated start and now)
-      const windowStartLimit = windowDays === 1 ? new Date(hist[lastIdx - 1].date) : dStart;
-      const windowTxns = df.filter(d =>
-        d.Ticker === ticker && d.Date > windowStartLimit && d.Date <= dEnd
-      );
-
-      let currentShares = startShares;
-      for (let t of windowTxns) {
-        const val = t.Price * t.Shares;
-        if (t.Action === "BUY") {
-          totalCashIn += val;
-          currentShares += t.Shares;
-        } else {
-          totalCashOut += val;
-          currentShares -= t.Shares;
+    for (const ticker of tickers) {
+      const hist = historyByTicker[ticker] || [];
+      hist.forEach(q => {
+        const d = new Date(q.date);
+        if (d >= startDate && d <= endDate) {
+          tradingDays.add(d.toISOString().slice(0, 10));
         }
-      }
-      totalEndValue += Math.max(0, currentShares) * lastPrice;
+      });
     }
 
-    const denominator = totalStartValue + totalCashIn;
-    if (denominator === 0) return 0;
+    const dates = [...tradingDays]
+      .sort()
+      .map(d => new Date(d));
 
-    const numerator = totalEndValue + totalCashOut - totalStartValue - totalCashIn;
-    return (numerator / denominator) * 100;
+    if (dates.length < 2)
+      return 0;
+
+    let cumulative = 1;
+
+    for (let i = 1; i < dates.length; i++) {
+
+      const prevDate = dates[i - 1];
+      const currDate = dates[i];
+
+      let valuePrev = 0;
+      let valueCurr = 0;
+
+      for (const ticker of tickers) {
+
+        const hist = historyByTicker[ticker];
+        if (!hist) continue;
+
+        const prevQuote =
+          [...hist].reverse().find(q => new Date(q.date) <= prevDate);
+
+        const currQuote =
+          [...hist].reverse().find(q => new Date(q.date) <= currDate);
+
+        if (!prevQuote || !currQuote)
+          continue;
+
+        const shares = getOpenLots(ticker, prevDate)
+          .reduce((s, l) => s + l.shares, 0);
+
+        valuePrev += shares * prevQuote.close;
+        valueCurr += shares * currQuote.close;
+      }
+
+      if (valuePrev === 0)
+        continue;
+
+      cumulative *= (valueCurr / valuePrev);
+    }
+
+    return (cumulative - 1) * 100;
   }
   useEffect(() => {
     async function load() {
@@ -555,54 +554,78 @@ export default function MyInvestments() {
           tickers.map(async ticker => {
             const openLots = getOpenLots(ticker, asOfDateJS);
             const totalShares = openLots.reduce((sum, l) => sum + l.shares, 0);
-            if (totalShares === 0) return null;
+
+            if (!totalShares) return null;
 
             const hist = historyByTicker[ticker] || [];
-            // The 'lastPrice' is now the price AS OF the selected date
-            const lastPrice = hist.length
-              ? hist[hist.length - 1].close
-              : (openLots.length ? openLots[openLots.length - 1].price : 0);
 
-            // 1M return (open lots, price-based)
+            // Ignore holdings Yahoo failed to return
+            if (
+              hist.length === 0 ||
+              hist[hist.length - 1]?.close == null ||
+              !Number.isFinite(hist[hist.length - 1].close)
+            ) {
+              console.warn(`Skipping ${ticker}: no valid market price`);
+              return null;
+            }
+
+            const lastPrice = hist[hist.length - 1].close;
+
+            // ---------- Monthly ----------
             const thirtyDaysAgo = new Date(asOfDateJS);
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            const monthly = openLots.reduce((sum, l) => {
-              const startDate = l.date > thirtyDaysAgo ? l.date : thirtyDaysAgo;
-              const startHist = hist.find(q => new Date(q.date) >= startDate);
-              const startPrice = startHist ? startHist.close : l.price;
-              const lotReturn = (lastPrice - startPrice) / startPrice;
-              const lotWeight = (l.shares * lastPrice) / (openLots.reduce((s, o) => s + o.shares * lastPrice, 0));
-              return sum + lotReturn * lotWeight;
-            }, 0) * 100;
+            const monthly =
+              openLots.reduce((sum, l) => {
+                const startDate = l.date > thirtyDaysAgo ? l.date : thirtyDaysAgo;
+                const startHist = hist.find(q => new Date(q.date) >= startDate);
 
-            // 1Y return (open lots)
+                const startPrice = startHist ? startHist.close : l.price;
+
+                const lotReturn = (lastPrice - startPrice) / startPrice;
+
+                const weight =
+                  (l.shares * lastPrice) /
+                  openLots.reduce((s, o) => s + o.shares * lastPrice, 0);
+
+                return sum + lotReturn * weight;
+              }, 0) * 100;
+
+            // ---------- Yearly ----------
             const oneYearAgo = new Date(asOfDateJS);
             oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
 
-            const yearly = openLots.reduce((sum, l) => {
-              const startDate = l.date > oneYearAgo ? l.date : oneYearAgo;
-              const startHist = hist.find(q => new Date(q.date) >= startDate);
-              const startPrice = startHist ? startHist.close : l.price;
-              const lotReturn = (lastPrice - startPrice) / startPrice;
-              const lotWeight = (l.shares * lastPrice) / (openLots.reduce((s, o) => s + o.shares * lastPrice, 0));
-              return sum + lotReturn * lotWeight;
-            }, 0) * 100;
+            const yearly =
+              openLots.reduce((sum, l) => {
+                const startDate = l.date > oneYearAgo ? l.date : oneYearAgo;
+                const startHist = hist.find(q => new Date(q.date) >= startDate);
 
-            // 1D return
-            const twoDaysAgo = new Date(asOfDateJS);
-            twoDaysAgo.setDate(twoDaysAgo.getDate() - 5); // go back 5 days to find prev trading day
-            const recentHist = hist.filter(q => new Date(q.date) >= twoDaysAgo);
-            const dayIndices = hist.length;
+                const startPrice = startHist ? startHist.close : l.price;
+
+                const lotReturn = (lastPrice - startPrice) / startPrice;
+
+                const weight =
+                  (l.shares * lastPrice) /
+                  openLots.reduce((s, o) => s + o.shares * lastPrice, 0);
+
+                return sum + lotReturn * weight;
+              }, 0) * 100;
+
+            // ---------- Daily ----------
             let dailyReturn = null;
-            if (dayIndices >= 2) {
-              const curr = hist[dayIndices - 1].close;
-              const prev = hist[dayIndices - 2].close;
+
+            if (hist.length >= 2) {
+              const curr = hist[hist.length - 1].close;
+              const prev = hist[hist.length - 2].close;
+
               dailyReturn = ((curr - prev) / prev) * 100;
             }
 
-            // Lifetime return & XIRR using all lots
-            const { lifetime, xirr } = computeLifetimeMetrics(ticker, asOfDateJS, lastPrice);
+            const { lifetime, xirr } = computeLifetimeMetrics(
+              ticker,
+              asOfDateJS,
+              lastPrice
+            );
 
             return {
               Ticker: ticker,
@@ -612,7 +635,7 @@ export default function MyInvestments() {
               LifetimeReturn: lifetime.toFixed(1),
               MonthlyReturn: monthly.toFixed(1),
               YearlyReturn: yearly.toFixed(1),
-              DailyReturn: dailyReturn !== null ? dailyReturn.toFixed(1) : null,
+              DailyReturn: dailyReturn?.toFixed(1),
               CAGR: xirr.toFixed(1),
               Value: totalShares * lastPrice,
               Color: openLots[0].Color,
@@ -621,26 +644,84 @@ export default function MyInvestments() {
           })
         );
 
-        const cleaned = results.filter(Boolean);
-        const totalValue = cleaned.reduce((sum, r) => sum + r.Value, 0);
-        const priceMap = {};
-        cleaned.forEach(r => (priceMap[r.Ticker] = r.CurrentPrice));
+        // Remove any holdings that failed to get a valid market price
+        const cleaned = results.filter(
+          r =>
+            r &&
+            Number.isFinite(r.CurrentPrice) &&
+            r.CurrentPrice > 0
+        );
 
-        // Portfolio XIRR (all tickers, all cashflows including closed)
+        const totalValue = cleaned.reduce((sum, r) => sum + r.Value, 0);
+
+        // Current price lookup
+        const priceMap = {};
+        cleaned.forEach(r => {
+          priceMap[r.Ticker] = r.CurrentPrice;
+        });
+
+        // Portfolio XIRR (all tickers, including closed positions)
         const allTickersEver = [...new Set(df.map(d => d.Ticker))];
         const fullPriceMap = { ...priceMap };
-        // For closed tickers (not in open holdings), use last known price from history
+
         allTickersEver.forEach(ticker => {
           if (!fullPriceMap[ticker]) {
             const hist = historyByTicker[ticker] || [];
-            if (hist.length) fullPriceMap[ticker] = hist[hist.length - 1].close;
+
+            if (
+              hist.length &&
+              Number.isFinite(hist[hist.length - 1]?.close)
+            ) {
+              fullPriceMap[ticker] = hist[hist.length - 1].close;
+            }
           }
         });
 
-        setPortfolioXIRR(computePortfolioXIRR(asOfDateJS, null, fullPriceMap));
-        cleaned.forEach(r => { r.Weight = (r.Value / totalValue) * 100; });
-        cleaned.sort((a, b) => b.Weight - a.Weight);
+        setPortfolioXIRR(
+          computePortfolioXIRR(asOfDateJS, null, fullPriceMap)
+        );
 
+        // Calculate allocation percentages
+        cleaned.forEach(r => {
+          r.Weight = (r.Value / totalValue) * 100;
+        });
+
+        // Split into major/minor holdings
+        const majorHoldings = cleaned.filter(h => h.Weight > 1.5);
+        const minorHoldings = cleaned.filter(h => h.Weight <= 1.5);
+
+        // Create synthetic "Other" holding
+        if (minorHoldings.length) {
+          const totalOtherValue = minorHoldings.reduce((s, h) => s + h.Value, 0);
+
+          const weighted = field =>
+            (
+              minorHoldings.reduce(
+                (s, h) => s + parseFloat(h[field]) * h.Value,
+                0
+              ) / totalOtherValue
+            ).toFixed(1);
+
+          majorHoldings.push({
+            Ticker: "Other",
+            IsOther: true,
+
+            Weight: minorHoldings.reduce((s, h) => s + h.Weight, 0),
+            Value: totalOtherValue,
+
+            LifetimeReturn: weighted("LifetimeReturn"),
+            CAGR: weighted("CAGR"),
+            MonthlyReturn: weighted("MonthlyReturn"),
+            DailyReturn: weighted("DailyReturn"),
+
+            Holdings: minorHoldings,
+
+            Color: "#64748b",
+            LogoUrl: "https://cdn-icons-png.flaticon.com/512/3843/3843966.png"
+          });
+        }
+
+        majorHoldings.sort((a, b) => b.Weight - a.Weight);
         const historyWithoutSpy = Object.fromEntries(
           Object.entries(historyByTicker).filter(([ticker]) => ticker !== "SPY")
         );
@@ -712,7 +793,9 @@ export default function MyInvestments() {
 
         // --- 4. SPY counterfactual ---
         const spyBenchmarkRow = await computeSPYCounterfactual(asOfDateJS);
-        const finalResults = spyBenchmarkRow ? [...cleaned, spyBenchmarkRow] : cleaned;
+        const finalResults = spyBenchmarkRow
+          ? [...majorHoldings, spyBenchmarkRow]
+          : majorHoldings;
 
         setPerformance(finalResults);
       }
