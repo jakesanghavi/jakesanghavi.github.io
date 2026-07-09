@@ -75,6 +75,9 @@ const rawData = [
   ["BUY", "SPY", "SPY", "2021-03-05", 376.7, 0.004, '#4e9942', "https://1000logos.net/wp-content/uploads/2023/04/State-Street-Global-Advisers-Logo.jpg", "Checking"]
 ];
 
+const openLotsCache = {};
+const historyLookup = {};
+
 const getExchangeCurrencyPair = (ticker) => {
   if (!ticker.includes('.')) return null;
 
@@ -169,7 +172,8 @@ const computePortfolioXIRR = (asOfDate, tickers, priceMap) => {
   // Terminal value: open lots at current price
   const usedTickers = tickers || [...new Set(df.map(d => d.Ticker))];
   for (let ticker of usedTickers) {
-    const openLots = getOpenLots(ticker, asOfDate);
+    const openLots =
+      openLotsCache[ticker];
     const shares = openLots.reduce((s, l) => s + l.shares, 0);
     if (!shares || !priceMap[ticker]) continue;
     cashflows.push({ date: asOfDate, amount: shares * priceMap[ticker] });
@@ -331,7 +335,7 @@ export default function MyInvestments() {
   const [aggregateMetrics, setAggregateMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  async function computeSPYCounterfactual(asOfDate) {
+  async function computeSPYCounterfactual(asOfDate, hbt) {
     // 1. Filter transactions to only those on or before the selected date
     const txns = df.filter(d => d.Date <= asOfDate).sort((a, b) => a.Date - b.Date);
     if (!txns.length) return null;
@@ -342,7 +346,9 @@ export default function MyInvestments() {
     const spyData = await spyRes.json();
 
     // 3. CRITICAL: Slice history so "today" is the asOfDate, not the literal today
-    const spyHist = (spyData.quotes || []).filter(q => new Date(q.date) <= asOfDate);
+    const spyHist = hbt
+      .filter(q =>
+        new Date(q.date) <= asOfDate);
     if (!spyHist.length) return null;
 
     // Helper: Find the closest price ON or BEFORE a specific date
@@ -537,6 +543,12 @@ export default function MyInvestments() {
         // Get only tickers that existed up to this date
         const tickers = [...new Set(txnsAtDate.map(d => d.Ticker))];
 
+        // O(1) Improvement
+        tickers.forEach(ticker => {
+          openLotsCache[ticker] =
+            getOpenLots(ticker, asOfDateJS);
+        });
+
         // 2. Truncate history as discussed
         const earliestDate = new Date(Math.min(...txnsAtDate.map(d => d.Date)));
         const historyByTicker = {};
@@ -549,10 +561,21 @@ export default function MyInvestments() {
           })
         );
 
+        tickers.forEach(ticker => {
+          historyLookup[ticker] = {};
+          historyByTicker[ticker]
+            .forEach(q => {
+              historyLookup[ticker][
+                q.date.slice(0, 10)
+              ] = q;
+            });
+        });
+
         // --- 2. Compute open holdings ---
         const results = await Promise.all(
           tickers.map(async ticker => {
-            const openLots = getOpenLots(ticker, asOfDateJS);
+            const openLots =
+              openLotsCache[ticker];
             const totalShares = openLots.reduce((sum, l) => sum + l.shares, 0);
 
             if (!totalShares) return null;
@@ -763,7 +786,8 @@ export default function MyInvestments() {
           // Current value of open positions
           const involvedTickers = [...new Set(txns.map(t => t.Ticker))];
           involvedTickers.forEach(ticker => {
-            const openLots = getOpenLots(ticker, asOfDateJS);
+            const openLots =
+              openLotsCache[ticker];
             const price = fullPriceMap[ticker] || 0;
             cashflows += openLots.reduce((s, l) => s + l.shares * price, 0);
           });
@@ -792,19 +816,25 @@ export default function MyInvestments() {
         });
 
         // --- 4. SPY counterfactual ---
-        const spyBenchmarkRow = await computeSPYCounterfactual(asOfDateJS);
-        const finalResults = spyBenchmarkRow
-          ? [...majorHoldings, spyBenchmarkRow]
-          : majorHoldings;
+        setPerformance(majorHoldings);
+        setLoading(false);
 
-        setPerformance(finalResults);
+        // Compute SPY in the background
+        computeSPYCounterfactual(asOfDateJS, historyByTicker.SPY)
+          .then(spyBenchmarkRow => {
+            if (!spyBenchmarkRow) return;
+
+            setPerformance(current => [
+              ...current.filter(r => r.Ticker !== "SPY Counterfactual"),
+              spyBenchmarkRow
+            ]);
+          });
       }
       catch (e) {
         console.error("Error loading investment data:", e);
       }
       finally {
-        console.log('um')
-        setLoading(false);
+        console.log("");
       }
     }
     load();
