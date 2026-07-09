@@ -8,6 +8,10 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
+  ["BUY", "Penguin Solutions", "PENG", "2026-07-06", 67.57, 0.0275, '#f6c72e', "https://pbs.twimg.com/media/HMppSikW8AA4nX7.png", "Checking"],
+  ["BUY", "Nebius", "NBIS", "2026-07-06", 220.71, 0.01, '#d9f74d', "https://companieslogo.com/img/orig/NBIS-60556424.png?t=1779289442", "Checking"],
+  ["BUY", "Broadcom", "AVGO", "2026-07-02", 358.94, 0.006, '#cd0930', "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/broadcom.webp", "Checking"],
+  ["BUY", "WhiteFiber", "WYFI", "2026-07-02", 31.94, 0.03, '#21292e', "https://pbs.twimg.com/media/GxBjTItbUAIcDNJ.png", "Checking"],
   ["BUY", "Smarteye", "SEYE.ST", "2026-06-23", 8.53, 0.055, '#f7d941', "https://s3-symbol-logo.tradingview.com/smart-eye--600.png", "Checking"],
   ["SELL", "MP Materials", "MP", "2026-06-23", 58.80, 0.005, '#072760', "https://companieslogo.com/img/orig/MP-a33ee156.png?t=1720244492", "Checking"],
   ["SELL", "Iren", "IREN", "2026-06-23", 54.77, 0.005, '#70da7e', "https://iren.com/icons/logo.svg?dpl=947", "Checking"],
