@@ -8,6 +8,7 @@ import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
 const rawData = [
+  ["BUY", "Ouster", "OUST", "2026-07-13", 41.88, 0.05, '#000000', "https://upload.wikimedia.org/wikipedia/commons/6/67/Ouster_Logo.png", "Checking"],
   ["BUY", "Penguin Solutions", "PENG", "2026-07-06", 67.57, 0.0275, '#f6c72e', "https://pbs.twimg.com/media/HMppSikW8AA4nX7.png", "Checking"],
   ["BUY", "Nebius", "NBIS", "2026-07-06", 220.71, 0.01, '#d9f74d', "https://companieslogo.com/img/orig/NBIS-60556424.png?t=1779289442", "Checking"],
   ["BUY", "Broadcom", "AVGO", "2026-07-02", 358.94, 0.006, '#cd0930', "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/webp/broadcom.webp", "Checking"],
