@@ -17,25 +17,20 @@ export const profile = {
 };
 
 export const nav = [
-  { id: 'about', label: 'About' },
   { id: 'work', label: 'Work' },
   { id: 'projects', label: 'Projects' },
   { id: 'contact', label: 'Contact' },
 ];
 
-// About — written as prose, not a labeled field guide.
+// A concise purpose line that leads into the experience section.
 export const about = {
-  // The large statement. `em` spans render as italic display accents.
+  // `em` spans render as italic display accents.
   statement: [
-    { t: 'I build things that make ' },
+    { t: 'I build tools that make ' },
     { t: 'complicated systems', em: true },
-    { t: ' feel legible — models, tools, and interfaces that turn noise into something you can actually use.' },
+    { t: ' easier to understand.' },
   ],
-  body: [
-    'My deepest fascination is astrophysics: the practice of measuring the impossibly distant and reasoning carefully about what the measurement means. That instinct — patient observation, honest inference — runs through everything I do.',
-    'In practice I’m a data scientist and engineer. I forecast behavior, pull signal out of a season of sports data, and ship software people actually rely on. I care less about which technique is fashionable and more about whether the result is clear, defensible, and useful.',
-  ],
-  now: 'Based in Atlanta · pursuing an M.S. in Data Science at Georgia Tech.',
+  tagline: 'Data scientist & engineer based in Atlanta.',
 };
 
 // One quiet, evocative line for the immersive interlude.
