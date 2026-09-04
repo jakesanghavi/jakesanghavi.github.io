@@ -1,5 +1,8 @@
 import tavernLogo from '../assets/tavern_logo.png';
 import roamioLogo from '../assets/roamio_logo.png';
+import portrait from '../assets/denver_me.jpeg';
+
+export { portrait };
 
 // Base64-obfuscated email, kept from the previous site.
 export const ENCODED_EMAIL = 'amFrZS5zYW5naGF2aUBnbWFpbC5jb20=';
@@ -9,6 +12,9 @@ export const profile = {
   name: 'Jake Sanghavi',
   role: 'Solutions Designer',
   location: 'Atlanta',
+  // A short, personal introduction for the opening screen.
+  summary:
+    'Data scientist and engineer building production ML — NLP, forecasting, and the data platforms behind them. Off the clock, it’s astrophysics and sports analytics: the same hunt for structure hidden in noisy data.',
   socials: [
     { label: 'GitHub', href: 'https://github.com/jakesanghavi' },
     { label: 'LinkedIn', href: 'https://linkedin.com/in/jake-sanghavi' },
@@ -22,76 +28,102 @@ export const nav = [
   { id: 'contact', label: 'Contact' },
 ];
 
-// A concise purpose line that leads into the experience section.
-export const about = {
-  // `em` spans render as italic display accents.
-  statement: [
-    { t: 'I build tools that make ' },
-    { t: 'complicated systems', em: true },
-    { t: ' easier to understand.' },
-  ],
-  tagline: 'Data scientist & engineer based in Atlanta.',
-};
+// A compact professional summary that leads the experience section.
+export const resumeSummary =
+  'ML / data science engineer building production NLP, forecasting, and data pipelines for telecom and finance — with measurable impact from GenAI, computer vision, and predictive analytics.';
 
-// One quiet, evocative line for the immersive interlude.
-export const interludeLine =
-  'Almost everything I find interesting is, in the end, a system worth understanding.';
-
-// Work — most recent first. Descriptions preserved verbatim.
+// Experience — most recent first. Each summary condensed to one line.
 export const experience = [
   {
-    year: '2024',
-    role: 'Data Analyst II',
+    year: '2025',
+    role: 'Data Science Engineer II, Corporate Finance',
     org: 'AT&T',
-    period: '2024 — present',
+    period: '2025 — present',
+    location: 'Atlanta, GA',
     summary:
-      'Primary developer of various ML and NLP models using Prophet and Transformer models. Informed company strategy around promotional programs and legal claim handling.',
+      'Enterprise cash-flow forecasting in Prophet (<1.5% monthly error) and a PySpark billing platform unifying records for 200M+ subscribers.',
     current: true,
+  },
+  {
+    year: '2024',
+    role: 'Data Science Engineer I, Mass Markets',
+    org: 'AT&T',
+    period: '2024 — 2025',
+    location: 'Atlanta, GA',
+    summary:
+      'NLP, computer vision, and RAG systems that recovered misassigned credits and matched customer claims — $15M+ in annual value.',
   },
   {
     year: '2024',
     role: 'Data Analyst Intern',
     org: 'The Kraft Group',
     period: '2024',
-    summary: 'Predicted event attendance using PyTorch to structure staffing and inventory.',
+    location: 'Foxboro, MA',
+    summary:
+      'Forecast game attendance to within 2%, cutting staffing and inventory costs by $10K+ per game.',
   },
   {
     year: '2023',
     role: 'Data Science Intern',
     org: 'AT&T',
     period: '2023',
+    location: 'Atlanta, GA',
     summary:
-      'Developed customer churn prediction models. Member of the team responsible for bringing Gen. AI to the company.',
+      'GPT-4 summarization workflows and complaint-prediction models mitigating an estimated $235M in risk.',
   },
   {
     year: '2022',
-    role: 'Data Science Intern',
+    role: 'Corporate Data Science Intern',
     org: 'Thermo Fisher Scientific',
     period: '2022',
+    location: 'Pittsburgh, PA',
+    summary: 'NLP and anomaly detection to flag disloyal customers and drive sales growth.',
+  },
+  {
+    year: '2021',
+    role: 'Astrophysics Research Intern',
+    org: 'Embry-Riddle Aeronautical University',
+    period: '2021',
+    location: 'Daytona Beach, FL',
     summary:
-      'Developed sales algorithms using combinatorics and anomaly detection for competitor analysis.',
+      'Measured stellar orbital periods with FFTs; optimized wavelet algorithms for up to 500× speedups.',
+  },
+  {
+    year: '2019',
+    role: 'Data Analyst Intern',
+    org: 'The New England Patriots',
+    period: '2019 — 2020',
+    location: 'Foxboro, MA',
+    summary:
+      'Built statistical models and visualizations for the Patriots Hall of Fame “Dynasty” exhibit.',
   },
 ];
 
 export const education = [
   {
-    degree: 'M.S., Data Science',
+    degree: 'M.S. in Analytics — Computational Track',
     org: 'Georgia Tech',
     period: '2025 — 2026',
-    note: 'Advanced AI/ML.',
+    note: 'GPA 4.0',
   },
   {
-    degree: 'B.S., Data Science',
+    degree: 'B.S. in Data Science & Analytics',
     org: 'Case Western Reserve University',
     period: '2020 — 2024',
-    note: 'Summa Cum Laude · 4.0 GPA.',
+    note: 'Summa Cum Laude · GPA 4.0',
   },
 ];
 
-// A short, understated list of tools — not a logo wall.
-export const tools = [
-  'Python', 'TypeScript', 'PyTorch', 'TensorFlow', 'SQL', 'React',
-  'Node', 'AWS', 'Spark', 'Databricks', 'Snowflake', 'Docker',
+// Skills as two compact groups (not a logo wall).
+export const skills = [
+  {
+    group: 'Engineering',
+    items: ['Python', 'TypeScript', 'SQL', 'React', 'Next.js', 'Node', 'FastAPI', 'Databricks', 'Snowflake', 'Azure', 'Docker'],
+  },
+  {
+    group: 'ML / AI',
+    items: ['PyTorch', 'TensorFlow', 'scikit-learn', 'PySpark', 'LangChain / LangGraph', 'RAG', 'LLMs', 'OpenCV'],
+  },
 ];
 
 // Projects — two featured, two compact. Facts preserved.
@@ -103,7 +135,7 @@ export const projects = [
     tag: 'Live product',
     year: '2024',
     description:
-      'A social platform for the mobile game “CUE Cards,” grown past 100 registered users — accounts, community, and image-based card recognition via OCR.',
+      'A social platform for the mobile game “CUE Cards,” now with 200+ active users — accounts, OAuth, community, and image-based card recognition via OCR.',
     technologies: ['React', 'Node', 'Express', 'MongoDB', 'OCR'],
     github_url: 'https://github.com/jakesanghavi/CUE_Social/tree/main',
     live_url: 'https://cuetavern.com/',

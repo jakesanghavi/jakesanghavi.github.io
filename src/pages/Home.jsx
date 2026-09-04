@@ -1,7 +1,6 @@
 import Masthead from '../components/Masthead';
 import Hero from '../components/sections/Hero';
 import Work from '../components/sections/Work';
-import Interlude from '../components/sections/Interlude';
 import Projects from '../components/sections/Projects';
 import Contact from '../components/sections/Contact';
 import Footer from '../components/Footer';
@@ -19,7 +18,6 @@ export default function Home() {
       <main>
         <Hero />
         <Work />
-        <Interlude />
         <Projects />
         <Contact />
       </main>

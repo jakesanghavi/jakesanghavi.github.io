@@ -1,9 +1,26 @@
 import { motion } from 'framer-motion';
 
-// The one immersive, mostly-abstract astronomical composition: painterly deep
-// gradients (inspired by long-exposure astrophotography) with a few faint
-// concentric rings drifting almost imperceptibly. No labels, no diagrams.
-export default function CelestialField({ style, className = '' }) {
+// A mostly-abstract astronomical composition: painterly deep gradients (inspired
+// by long-exposure astrophotography) with a few faint concentric rings drifting
+// almost imperceptibly. No labels, no diagrams. `variant` shifts the palette so
+// the same visual can distinguish two different sections.
+const PALETTES = {
+  night: {
+    base: 'radial-gradient(120% 90% at 50% 40%, #0d1826 0%, #080d14 70%)',
+    cool: 'rgba(56,96,138,0.42)',
+    warm: 'rgba(224,150,86,0.40)',
+    violet: 'rgba(96,84,150,0.24)',
+  },
+  dusk: {
+    base: 'radial-gradient(120% 95% at 60% 30%, #14131f 0%, #0a0a12 72%)',
+    cool: 'rgba(70,104,150,0.30)',
+    warm: 'rgba(216,132,74,0.34)',
+    violet: 'rgba(126,92,158,0.34)',
+  },
+};
+
+export default function CelestialField({ style, variant = 'night', className = '' }) {
+  const p = PALETTES[variant] || PALETTES.night;
   const rings = [
     { rx: 300, ry: 118, rot: -16 },
     { rx: 210, ry: 82, rot: -16 },
@@ -12,8 +29,7 @@ export default function CelestialField({ style, className = '' }) {
 
   return (
     <div className={`pointer-events-none absolute inset-0 overflow-hidden ${className}`} aria-hidden="true">
-      {/* deep base */}
-      <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 90% at 50% 40%, #0d1826 0%, #080d14 70%)' }} />
+      <div className="absolute inset-0" style={{ background: p.base }} />
 
       {/* cool nebula, upper-left */}
       <div
@@ -23,7 +39,7 @@ export default function CelestialField({ style, className = '' }) {
           left: '-6%',
           width: '70vw',
           height: '70vw',
-          background: 'radial-gradient(circle at 50% 50%, rgba(56,96,138,0.42) 0%, rgba(40,70,110,0.12) 42%, rgba(0,0,0,0) 68%)',
+          background: `radial-gradient(circle at 50% 50%, ${p.cool} 0%, rgba(0,0,0,0) 62%)`,
           filter: 'blur(20px)',
         }}
       />
@@ -36,7 +52,7 @@ export default function CelestialField({ style, className = '' }) {
           right: '2%',
           width: '52vw',
           height: '52vw',
-          background: 'radial-gradient(circle at 50% 50%, rgba(224,150,86,0.40) 0%, rgba(160,86,52,0.12) 44%, rgba(0,0,0,0) 70%)',
+          background: `radial-gradient(circle at 50% 50%, ${p.warm} 0%, rgba(0,0,0,0) 68%)`,
           filter: 'blur(24px)',
           ...style,
         }}
@@ -48,7 +64,7 @@ export default function CelestialField({ style, className = '' }) {
         style={{
           width: '46vw',
           height: '46vw',
-          background: 'radial-gradient(circle at 50% 50%, rgba(96,84,150,0.24) 0%, rgba(0,0,0,0) 66%)',
+          background: `radial-gradient(circle at 50% 50%, ${p.violet} 0%, rgba(0,0,0,0) 66%)`,
           filter: 'blur(30px)',
         }}
       />
@@ -70,7 +86,7 @@ export default function CelestialField({ style, className = '' }) {
             ry={r.ry}
             transform={`rotate(${r.rot})`}
             fill="none"
-            stroke="rgba(233,238,245,0.10)"
+            stroke="rgba(233,238,245,0.09)"
             strokeWidth="1"
           />
         ))}
