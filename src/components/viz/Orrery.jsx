@@ -18,7 +18,7 @@ function ellipsePos(rx, ry, angle) {
   return { x: CX + rx * Math.cos(angle), y: CY + ry * Math.sin(angle) };
 }
 
-export default function Orrery({ className = '' }) {
+export default function Orrery({ className = '', decorative = false }) {
   const reduce = useReducedMotion();
   const bodyRefs = useRef([]);
   const ringRefs = useRef([]);
@@ -98,8 +98,9 @@ export default function Orrery({ className = '' }) {
     <svg
       className={className}
       viewBox="0 0 1000 1000"
-      role="img"
-      aria-label="An orrery: a small planetary system with bodies on elliptical orbits."
+      role={decorative ? 'presentation' : 'img'}
+      aria-hidden={decorative || undefined}
+      aria-label={decorative ? undefined : 'An orrery: a small planetary system with bodies on elliptical orbits.'}
       preserveAspectRatio="xMidYMid meet"
     >
       <defs>

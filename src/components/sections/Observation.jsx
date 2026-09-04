@@ -16,15 +16,14 @@ export default function Observation() {
   return (
     <section
       id="observation"
-      className="on-night relative min-h-[100svh] bg-night text-paper overflow-hidden flex items-center"
+      className="on-night relative min-h-[100svh] bg-night text-paper overflow-hidden flex items-start lg:items-center"
     >
       <div className="coord-grid absolute inset-0 opacity-70" aria-hidden="true" />
 
-      {/* Orrery — offset to the right, bleeding past the edge */}
+      {/* Orrery (desktop) — offset to the right, bleeding past the edge */}
       <div
-        className="absolute right-[-22%] sm:right-[-14%] lg:right-[-6%] top-1/2 -translate-y-1/2
-                   w-[130vw] sm:w-[90vw] lg:w-[62vw] max-w-[900px] aspect-square
-                   opacity-40 sm:opacity-55 lg:opacity-100 pointer-events-none"
+        className="hidden lg:block absolute right-[-6%] top-1/2 -translate-y-1/2
+                   w-[62vw] max-w-[900px] aspect-square pointer-events-none"
       >
         <motion.div
           initial={reduce ? false : { opacity: 0, scale: 0.94 }}
@@ -86,6 +85,16 @@ export default function Observation() {
             ↓
           </span>
         </motion.a>
+
+        {/* Orrery (mobile) — a discrete, fully-visible figure below the intro */}
+        <motion.div
+          initial={reduce ? false : { opacity: 0, scale: 0.94 }}
+          animate={reduce ? undefined : { opacity: 1, scale: 1 }}
+          transition={{ duration: 1.4, ease: 'easeOut' }}
+          className="lg:hidden mt-14 -mb-4 mx-auto w-[84vw] max-w-[420px] aspect-square"
+        >
+          <Orrery className="w-full h-full" decorative />
+        </motion.div>
       </div>
 
       {/* corner registration marks */}
