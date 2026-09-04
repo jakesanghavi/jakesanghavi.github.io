@@ -3,11 +3,6 @@
   "install": "npm ci",
   "terminals": [
     {
-      "name": "backend",
-      "command": "node backend/server.js",
-      "description": "Express + yahoo-finance2 stock API server on port 4000."
-    },
-    {
       "name": "frontend",
       "command": "npm run dev -- --host",
       "description": "Vite React dev server on port 5173."
@@ -17,10 +12,6 @@
     {
       "name": "frontend",
       "port": 5173
-    },
-    {
-      "name": "backend",
-      "port": 4000
     }
   ]
 }
