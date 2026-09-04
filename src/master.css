@@ -1,1 +1,219 @@
 @import "tailwindcss";
+
+/* ------------------------------------------------------------------ *
+ * Design tokens — an observatory notebook: warm paper + deep night,
+ * instrument amber, subdued astronomical blue. Not a "space website".
+ * ------------------------------------------------------------------ */
+@theme {
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-serif: "Spectral", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --color-paper: #f2ede2;
+  --color-paper-dim: #e7dfce;
+  --color-paper-line: #d8cfb8;
+
+  --color-ink: #191a1d;
+  --color-ink-soft: #33353b;
+  --color-graphite: #5c5f66;
+  --color-graphite-dim: #8b8d92;
+
+  --color-night: #0f1b2a;
+  --color-night-2: #0b1420;
+  --color-night-line: rgba(224, 231, 240, 0.14);
+
+  --color-amber: #bd7a24;
+  --color-amber-bright: #d69a45;
+  --color-blue: #3f6d8c;
+  --color-blue-soft: #8fb3c8;
+
+  --color-line: rgba(25, 26, 29, 0.16);
+  --color-line-strong: rgba(25, 26, 29, 0.34);
+}
+
+/* ------------------------------------------------------------------ *
+ * Base
+ * ------------------------------------------------------------------ */
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-serif);
+  font-weight: 400;
+  line-height: 1.55;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-amber);
+  color: var(--color-paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-amber);
+  outline-offset: 3px;
+}
+
+/* Thin, unobtrusive scrollbar in the paper palette */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-graphite-dim) transparent;
+}
+
+/* ------------------------------------------------------------------ *
+ * Typographic helpers
+ * ------------------------------------------------------------------ */
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+.u-mono {
+  font-family: var(--font-mono);
+  font-feature-settings: "ss01";
+}
+
+/* Small technical label — instrument readout / catalog tag */
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-graphite);
+}
+
+.label--amber {
+  color: var(--color-amber);
+}
+
+.label--faint {
+  color: var(--color-graphite-dim);
+}
+
+/* On dark night surfaces */
+.on-night .label {
+  color: var(--color-blue-soft);
+}
+
+/* Oversized catalog index number */
+.index-num {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hairline rules */
+.rule {
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+
+.on-night .rule {
+  border-top-color: var(--color-night-line);
+}
+
+/* Fine measurement tick strip */
+.tickline {
+  height: 10px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--color-line) 0,
+    var(--color-line) 1px,
+    transparent 1px,
+    transparent 12px
+  );
+}
+
+.on-night .tickline {
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--color-night-line) 0,
+    var(--color-night-line) 1px,
+    transparent 1px,
+    transparent 12px
+  );
+}
+
+/* Faint coordinate grid, used sparingly behind night sections */
+.coord-grid {
+  background-image:
+    linear-gradient(to right, var(--color-night-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-night-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center center;
+  -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 45%, #000 55%, transparent 100%);
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 45%, #000 55%, transparent 100%);
+}
+
+.coord-grid--paper {
+  background-image:
+    linear-gradient(to right, var(--color-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-line) 1px, transparent 1px);
+}
+
+/* Editorial body measure */
+.prose-measure {
+  max-width: 62ch;
+}
+
+/* Underline that behaves like a measurement mark */
+.link-mark {
+  color: var(--color-ink);
+  text-decoration: none;
+  background-image: linear-gradient(var(--color-amber), var(--color-amber));
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  transition: background-size 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), color 0.35s;
+  padding-bottom: 1px;
+}
+
+.link-mark:hover {
+  background-size: 100% 2px;
+}
+
+.on-night .link-mark {
+  color: var(--color-paper);
+}
+
+/* Draw-in animation for SVG strokes, gated by reduced-motion */
+@media (prefers-reduced-motion: no-preference) {
+  .draw-path {
+    stroke-dasharray: var(--len, 1200);
+    stroke-dashoffset: var(--len, 1200);
+    animation: draw 2.4s cubic-bezier(0.4, 0, 0.1, 1) forwards;
+  }
+
+  .spin-slow {
+    animation: spin 240s linear infinite;
+    transform-origin: center;
+  }
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
