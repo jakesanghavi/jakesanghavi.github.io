@@ -47,7 +47,7 @@ export default function Hero() {
         </span>
       </div>
 
-      <div className="relative z-10 min-h-[100svh] flex flex-col justify-center max-w-[1500px] mx-auto px-6 md:px-14">
+      <div className="relative z-10 min-h-[100svh] flex flex-col justify-center pb-[24vh] max-w-[1500px] mx-auto px-6 md:px-14">
         <motion.h1
           style={reduce ? undefined : { y: nameY, opacity: nameOpacity }}
           className="display display-tight text-paper"

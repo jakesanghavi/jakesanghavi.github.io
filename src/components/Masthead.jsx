@@ -70,11 +70,15 @@ export default function Masthead() {
                 key={n.id}
                 href={`#${n.id}`}
                 onClick={go(n.id)}
-                className={`text-sm transition-colors ${
-                  active === n.id
-                    ? 'text-accent'
-                    : dark
-                      ? 'text-paper/70 hover:text-paper'
+                className={`text-sm pb-1 border-b-2 transition-colors ${
+                  active === n.id ? 'border-accent' : 'border-transparent'
+                } ${
+                  dark
+                    ? active === n.id
+                      ? 'text-paper'
+                      : 'text-paper/60 hover:text-paper'
+                    : active === n.id
+                      ? 'text-ink'
                       : 'text-ink-soft hover:text-ink'
                 }`}
               >

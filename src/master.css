@@ -29,7 +29,7 @@
   --color-blue: #33526e;
   --color-blue-soft: #a6bccc;
   --color-glow: #eba24f;       /* warm sunlight */
-  --color-accent: #c47a34;     /* warm amber — the one accent */
+  --color-accent: #b0641d;     /* warm amber — the one accent (deepened for contrast) */
 
   --color-line: rgba(23, 24, 27, 0.14);
   --color-line-soft: rgba(23, 24, 27, 0.08);
