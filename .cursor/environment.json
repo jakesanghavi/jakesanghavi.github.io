@@ -1,0 +1,17 @@
+{
+  "name": "jakesanghavi.github.io",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "frontend",
+      "command": "npm run dev -- --host",
+      "description": "Vite React dev server on port 5173."
+    }
+  ],
+  "ports": [
+    {
+      "name": "frontend",
+      "port": 5173
+    }
+  ]
+}
