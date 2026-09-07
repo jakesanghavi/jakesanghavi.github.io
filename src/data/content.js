@@ -35,23 +35,24 @@ export const resumeSummary =
 // Experience — most recent first. Each summary condensed to one line.
 export const experience = [
   {
-    year: '2025',
-    role: 'Data Science Engineer II, Corporate Finance',
+    year: '2024',
+    role: 'Data Science Engineer (I → II)',
     org: 'AT&T',
-    period: '2025 — present',
+    period: '2024 — present',
     location: 'Atlanta, GA',
     summary:
-      'Enterprise cash-flow forecasting in Prophet (<1.5% monthly error) and a PySpark billing platform unifying records for 200M+ subscribers.',
+      'Cash-flow forecasting in Prophet (<1.5% error) and PySpark billing platforms for 200M+ subscribers; earlier, NLP, computer vision, and RAG systems worth $15M+.',
     current: true,
   },
   {
-    year: '2024',
-    role: 'Data Science Engineer I, Mass Markets',
-    org: 'AT&T',
-    period: '2024 — 2025',
-    location: 'Atlanta, GA',
+    year: '2025',
+    role: 'Astrophysics Researcher',
+    org: 'University of Georgia',
+    period: '2025 — present',
+    location: 'Athens, GA',
     summary:
-      'NLP, computer vision, and RAG systems that recovered misassigned credits and matched customer claims — $15M+ in annual value.',
+      'Python simulations of exoplanet photosynthesis — modeling orbital dynamics and atmospheric composition to find worlds where it could be detectable from Earth.',
+    current: true,
   },
   {
     year: '2024',
