@@ -21,13 +21,13 @@ export default function Work() {
               <Reveal as="h2" className="display text-[clamp(1.5rem,2.5vw,2.15rem)] leading-[1.16]">
                 {resumeSummary}
               </Reveal>
-              <Reveal delay={0.05}>
-                <span className="eyebrow block mt-8">Experience</span>
-              </Reveal>
             </div>
           </div>
 
           <div className="md:col-span-7 md:col-start-6">
+            <Reveal>
+              <span className="eyebrow block mb-6">Experience</span>
+            </Reveal>
             <ol>
               {experience.map((e, i) => (
                 <Reveal
@@ -39,18 +39,13 @@ export default function Work() {
                   <div className="display text-2xl md:text-4xl text-paper/25 leading-none">
                     {e.year}
                     {e.current && (
-                      <span className="block text-[0.62rem] md:text-xs tracking-[0.16em] uppercase text-blue-soft/70 mt-1.5">
+                      <span className="block text-[0.62rem] md:text-xs tracking-[0.16em] uppercase text-accent mt-1.5">
                         – present
                       </span>
                     )}
                   </div>
                   <div>
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                      <h3 className="display text-xl md:text-[1.9rem] leading-none text-paper">{e.org}</h3>
-                      {e.current && (
-                        <span className="text-accent text-sm font-medium tracking-wide">Now</span>
-                      )}
-                    </div>
+                    <h3 className="display text-xl md:text-[1.9rem] leading-none text-paper">{e.org}</h3>
                     <p className="text-sm text-blue-soft/80 mt-1.5">
                       {e.role}
                       {e.current ? '' : ` · ${e.period}`}
