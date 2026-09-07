@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Legend } from "recharts";
-import { motion } from "framer-motion";
 import { ROUTE } from "../../constants";
 
 // --- Watchlist ---

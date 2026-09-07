@@ -8,8 +8,8 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (id.includes('node_modules')) {
-            return 'vendor';
+          if (id.includes('node_modules/antd') || id.includes('node_modules/recharts')) {
+            return 'stocks-vendor';
           }
         },
       },

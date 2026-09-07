@@ -6,7 +6,7 @@ export default function StocksDashboard() {
   const [view, setView] = useState("portfolio"); // "portfolio" or "prospective"
 
   return (
-    <section className="py-12 bg-slate-900 min-h-screen">
+    <section className="py-12 bg-slate-900 min-h-screen pt-28">
       <div className="container mx-auto px-6 relative z-10">
         {/* Toggle Buttons */}
         <div className="flex justify-center gap-4 mb-12">

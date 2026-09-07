@@ -1,0 +1,85 @@
+export const experience = [
+  {
+    id: 'att-ds2',
+    company: 'AT&T',
+    title: 'Data Science Engineer II, Corporate Finance',
+    location: 'Atlanta, GA',
+    start: 'Aug 2025',
+    end: 'Present',
+    bullets: [
+      'Built enterprise-scale time series forecasting models (Prophet) for company-wide cash flow prediction, <1.5% monthly error, increasing annual investment revenue by $350K+',
+      'Engineered a centralized billing data platform (PySpark/SQL) integrating internal and third-party systems for 200M+ subscriber records, reducing engineering effort by $220K/year',
+      'Designed scalable Databricks pipelines automating model execution and reporting for enterprise finance workflows',
+    ],
+  },
+  {
+    id: 'att-ds1',
+    company: 'AT&T',
+    title: 'Data Science Engineer I, Mass Markets',
+    location: 'Atlanta, GA',
+    start: 'July 2024',
+    end: 'Aug 2025',
+    bullets: [
+      'Built NLP pipelines/transformer-based text analytics identifying $1.7M in misassigned customer credits (AT&T Guarantee program), plus sentiment analysis on program effectiveness',
+      'Built ML clustering and computer vision solutions reducing inventory loss, contributing to $5.8M+ in savings',
+      'Built a RAG solution using transformers and vector search for customer claim matching, generating $15M+ annually',
+    ],
+  },
+  {
+    id: 'kraft',
+    company: 'The Kraft Group',
+    title: 'Data Analyst Intern',
+    location: 'Foxboro, MA',
+    start: 'Apr 2024',
+    end: 'July 2024',
+    bullets: [
+      'Predicted sports game attendance within 2% accuracy, saving $10,000+/game by right-sizing staffing',
+      'Modeled inventory demand from forecasted attendance (Python/SQL) to improve cost efficiency',
+    ],
+  },
+  {
+    id: 'att-intern',
+    company: 'AT&T',
+    title: 'Data Science Intern',
+    location: 'Atlanta, GA',
+    start: 'June 2023',
+    end: 'Aug 2023',
+    bullets: [
+      'Built GenAI (GPT-4) workflows for enterprise text summarization, ~$100K in annual savings',
+      'Used H2O.ai and Scikit-learn to predict customer complaints, mitigating an estimated $235M in lost revenue',
+    ],
+  },
+  {
+    id: 'thermo',
+    company: 'Thermo Fisher Scientific',
+    title: 'Corporate Data Science Intern',
+    location: 'Pittsburgh, PA',
+    start: 'May 2022',
+    end: 'Aug 2022',
+    bullets: [
+      'Applied NLP and anomaly detection to detect disloyal customers, driving sales growth',
+    ],
+  },
+  {
+    id: 'erau',
+    company: 'Embry-Riddle Aeronautical University',
+    title: 'Astrophysics Research Intern',
+    location: 'Daytona Beach, FL',
+    start: 'May 2021',
+    end: 'Aug 2021',
+    bullets: [
+      'Used FFTs to determine orbital periods of stars; optimized wavelet algorithms for up to 500x speedups',
+    ],
+  },
+  {
+    id: 'pats',
+    company: 'The New England Patriots',
+    title: 'Data Analyst Intern',
+    location: 'Foxboro, MA',
+    start: 'June 2019',
+    end: 'Jan 2020',
+    bullets: [
+      'Developed statistical models and visualizations for the "Yes It\'s Still a Dynasty" exhibit at the Patriots Hall of Fame',
+    ],
+  },
+];
