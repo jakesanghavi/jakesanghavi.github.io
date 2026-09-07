@@ -1,4 +1,4 @@
-export default function IsolineField({ className = '', opacity = 0.42 }) {
+export default function IsolineField({ className = 'h-full w-full', opacity = 0.42 }) {
   const paths = PATHS;
 
   return (
