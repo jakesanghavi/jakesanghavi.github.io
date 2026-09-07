@@ -36,7 +36,7 @@ export const resumeSummary =
 export const experience = [
   {
     year: '2024',
-    role: 'Data Science Engineer (I → II)',
+    role: 'Data Scientist',
     org: 'AT&T',
     period: '2024 — present',
     location: 'Atlanta, GA',

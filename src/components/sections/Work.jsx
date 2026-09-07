@@ -36,7 +36,14 @@ export default function Work() {
                   delay={Math.min(i, 4) * 0.03}
                   className="grid grid-cols-[3rem_1fr] md:grid-cols-[4.5rem_1fr] gap-4 md:gap-8 py-6 md:py-7 border-t border-line-night first:border-t-0 first:pt-0"
                 >
-                  <div className="display text-2xl md:text-4xl text-paper/25 leading-none">{e.year}</div>
+                  <div className="display text-2xl md:text-4xl text-paper/25 leading-none">
+                    {e.year}
+                    {e.current && (
+                      <span className="block text-[0.62rem] md:text-xs tracking-[0.16em] uppercase text-blue-soft/70 mt-1.5">
+                        – present
+                      </span>
+                    )}
+                  </div>
                   <div>
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                       <h3 className="display text-xl md:text-[1.9rem] leading-none text-paper">{e.org}</h3>
@@ -45,7 +52,8 @@ export default function Work() {
                       )}
                     </div>
                     <p className="text-sm text-blue-soft/80 mt-1.5">
-                      {e.role} · {e.period}
+                      {e.role}
+                      {e.current ? '' : ` · ${e.period}`}
                       {e.location ? ` · ${e.location}` : ''}
                     </p>
                     <p className="text-[0.98rem] leading-relaxed text-paper/70 mt-2">
