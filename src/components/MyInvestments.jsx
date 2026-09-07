@@ -3,7 +3,6 @@ import { DatePicker } from "antd";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import M2 from "dayjs";
 import { ROUTE } from '../../constants';
-import { motion } from "framer-motion";
 import PieTooltip from "../components/PieToolTip";
 
 // Predefined stock info
@@ -336,7 +335,7 @@ export default function MyInvestments() {
   // { overall: {lifetime, xirr, monthly, yearly, daily}, individual: {...}, spy: {...} }
   const [aggregateMetrics, setAggregateMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [pieAnimated, setPieAnimated] = useState(true);
+  const [, setPieAnimated] = useState(true);
 
   useEffect(() => {
     if (!loading) {
@@ -351,8 +350,7 @@ export default function MyInvestments() {
     if (!txns.length) return null;
 
     // 2. Fetch SPY history
-    const earliestDate = txns[0].Date;
-    // const spyRes = await fetch(`${ROUTE}/api/stocks/SPY?start=${earliestDate.toISOString()}&end=${asOfDate.toISOString()}`);
+    // const spyRes = await fetch(`${ROUTE}/api/stocks/SPY?start=${txns[0].Date.toISOString()}&end=${asOfDate.toISOString()}`);
     // const spyData = await spyRes.json();
 
     // 3. CRITICAL: Slice history so "today" is the asOfDate, not the literal today
