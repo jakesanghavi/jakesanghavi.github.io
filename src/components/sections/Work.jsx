@@ -30,19 +30,17 @@ function RoleCard({ e, i }) {
           <div>
             <span className="text-[0.72rem] tracking-[0.16em] uppercase text-muted md:whitespace-nowrap">{e.role}</span>
             {e.commitment && (
-              <span className="block text-[0.62rem] tracking-[0.18em] uppercase text-accent mt-1.5">
+              <span className="mt-1.5 block text-[0.62rem] tracking-[0.18em] uppercase text-accent">
                 {e.commitment}
               </span>
             )}
-          </div>
-          <span className="display shrink-0 text-right leading-none text-ink/55">
-            <span className="text-3xl">{e.year}</span>
             {e.current && (
-              <span className="mt-1.5 block text-[0.62rem] tracking-[0.16em] uppercase text-accent md:ml-2 md:mt-0 md:inline">
+              <span className="mt-1.5 block text-[0.62rem] tracking-[0.16em] uppercase text-accent">
                 – present
               </span>
             )}
-          </span>
+          </div>
+          <span className="display shrink-0 text-right text-3xl leading-none text-ink/55">{e.year}</span>
         </div>
         <div className="mt-8">
           <h3 className="display text-[1.85rem] leading-none md:whitespace-nowrap md:text-[clamp(1rem,5.6cqw,1.75rem)]">{e.org}</h3>
