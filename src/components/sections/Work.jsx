@@ -11,9 +11,9 @@ function LogoField({ logo, background, children, className = '' }) {
         src={logo}
         alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute top-6 right-[30%] h-14 w-[24%] object-contain object-right select-none md:top-1/2 md:h-[58%] md:w-[26%] md:-translate-y-1/2"
+        className="pointer-events-none absolute top-1/2 right-3 h-[42%] w-[28%] -translate-y-1/2 object-contain object-right select-none md:right-5 md:h-[68%] md:w-[24%]"
       />
-      <div className="relative z-10 flex w-[62%] flex-1 flex-col justify-between md:w-[44%]">{children}</div>
+      <div className="relative z-10 flex w-[64%] flex-1 flex-col justify-between md:w-full md:pr-[26%] md:@container">{children}</div>
     </div>
   );
 }
@@ -28,24 +28,24 @@ function RoleCard({ e, i }) {
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <span className="text-[0.72rem] tracking-[0.16em] uppercase text-muted">{e.role}</span>
+            <span className="text-[0.72rem] tracking-[0.16em] uppercase text-muted md:whitespace-nowrap">{e.role}</span>
             {e.commitment && (
               <span className="block text-[0.62rem] tracking-[0.18em] uppercase text-accent mt-1.5">
                 {e.commitment}
               </span>
             )}
           </div>
-          <span className="display text-3xl leading-none text-ink/55 text-right">
-            {e.year}
+          <span className="display shrink-0 text-right leading-none text-ink/55">
+            <span className="text-3xl">{e.year}</span>
             {e.current && (
-              <span className="block text-[0.62rem] tracking-[0.16em] uppercase text-accent mt-1.5">
+              <span className="mt-1.5 block text-[0.62rem] tracking-[0.16em] uppercase text-accent md:ml-2 md:mt-0 md:inline">
                 – present
               </span>
             )}
           </span>
         </div>
         <div className="mt-8">
-          <h3 className="display text-[1.85rem] md:text-[2.1rem] leading-none">{e.org}</h3>
+          <h3 className="display text-[1.85rem] leading-none md:whitespace-nowrap md:text-[clamp(1rem,5.6cqw,1.75rem)]">{e.org}</h3>
           <p className="text-[0.95rem] leading-relaxed text-ink-soft mt-3">{e.summary}</p>
           {e.location && <p className="text-sm text-muted mt-3">{e.location}</p>}
         </div>
@@ -79,7 +79,7 @@ export default function Work() {
                 <LogoField logo={ed.logo} background={ed.background} className="min-h-[11rem] p-6 md:p-7">
                   <div>
                     <span className="text-[0.72rem] tracking-[0.16em] uppercase text-muted">{ed.period}</span>
-                    <h3 className="display text-2xl md:text-3xl leading-none mt-4">{ed.org}</h3>
+                    <h3 className="display mt-4 text-2xl leading-none md:whitespace-nowrap md:text-[clamp(1rem,5.6cqw,1.75rem)]">{ed.org}</h3>
                     <p className="text-ink-soft mt-3">{ed.degree}</p>
                     <p className="text-sm text-muted mt-2">{ed.note}</p>
                   </div>
