@@ -12,48 +12,21 @@ import patriotsLogo from '../assets/logos/patriots.svg';
 import gatechLogo from '../assets/logos/gatech.svg';
 import cwruLogo from '../assets/logos/cwru.svg';
 
-// Brand fields for employment and education cards. Colors come from each mark.
+// White on the text side, the mark's color on the other.
+// UGA and the Patriots are near-black at primary, so those cards use red.
+// Kraft is only black and white, so the dark half stays black.
+const wash = (color) =>
+  `linear-gradient(100deg, #ffffff 0%, #ffffff 62%, ${color} 100%)`;
+
 const brands = {
-  att: {
-    logo: attLogo,
-    background:
-      'radial-gradient(80% 90% at 100% 40%, rgba(0,168,224,0.42), transparent 58%), linear-gradient(165deg, #0b3c56 0%, #071820 100%)',
-  },
-  uga: {
-    logo: ugaLogo,
-    background:
-      'radial-gradient(80% 90% at 100% 50%, rgba(186,12,47,0.5), transparent 58%), linear-gradient(165deg, #3a1018 0%, #14080b 100%)',
-  },
-  kraft: {
-    logo: kraftLogo,
-    background:
-      'radial-gradient(70% 80% at 100% 80%, rgba(255,255,255,0.08), transparent 55%), linear-gradient(165deg, #2a2a2a 0%, #111111 100%)',
-  },
-  thermo: {
-    logo: thermoLogo,
-    background:
-      'radial-gradient(80% 80% at 100% 30%, rgba(239,65,53,0.42), transparent 56%), linear-gradient(165deg, #3a1614 0%, #140c0c 100%)',
-  },
-  embry: {
-    logo: embryLogo,
-    background:
-      'radial-gradient(85% 80% at 100% 40%, rgba(0,82,156,0.55), transparent 58%), linear-gradient(165deg, #0c2f52 0%, #081420 100%)',
-  },
-  patriots: {
-    logo: patriotsLogo,
-    background:
-      'radial-gradient(80% 80% at 100% 70%, rgba(198,12,48,0.4), transparent 55%), linear-gradient(165deg, #0d2244 0%, #081018 100%)',
-  },
-  gatech: {
-    logo: gatechLogo,
-    background:
-      'radial-gradient(80% 80% at 100% 40%, rgba(170,152,93,0.45), transparent 56%), linear-gradient(165deg, #1a2740 0%, #0c1422 100%)',
-  },
-  cwru: {
-    logo: cwruLogo,
-    background:
-      'radial-gradient(80% 80% at 100% 40%, rgba(0,82,160,0.45), transparent 56%), linear-gradient(165deg, #0c2748 0%, #081018 100%)',
-  },
+  att: { logo: attLogo, background: wash('#00A8E0') },
+  uga: { logo: ugaLogo, background: wash('#BA0C2F') },
+  kraft: { logo: kraftLogo, background: wash('#1A1A1A') },
+  thermo: { logo: thermoLogo, background: wash('#EF4135') },
+  embry: { logo: embryLogo, background: wash('#00529C') },
+  patriots: { logo: patriotsLogo, background: wash('#C60C30') },
+  gatech: { logo: gatechLogo, background: wash('#AA985D') },
+  cwru: { logo: cwruLogo, background: wash('#003071') },
 };
 
 export { portrait };
