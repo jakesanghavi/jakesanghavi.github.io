@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import PlanetLimb from '../visuals/PlanetLimb';
+import OrbitalSystem from '../visuals/OrbitalSystem';
 import { profile, portrait } from '../../data/content';
 
 export default function Hero() {
@@ -83,8 +84,11 @@ export default function Hero() {
                 })}
             className="lg:col-span-5 flex justify-center lg:justify-end"
           >
-            <figure className="relative w-[15rem] sm:w-[17rem] lg:w-[20rem]">
-              <div className="relative aspect-[632/711] overflow-hidden ring-1 ring-white/15 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+            <figure className="relative w-[15rem] sm:w-[17rem] lg:w-[19rem]">
+              <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[175%] aspect-square">
+                <OrbitalSystem className="w-full h-full" />
+              </div>
+              <div className="relative z-10 aspect-[632/711] overflow-hidden ring-1 ring-white/20 shadow-[0_30px_80px_rgba(0,0,0,0.55)]">
                 <img
                   src={portrait}
                   alt="Jake Sanghavi"

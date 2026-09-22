@@ -1,5 +1,7 @@
 import tavernLogo from '../assets/tavern_logo.png';
 import roamioLogo from '../assets/roamio_logo.png';
+import nflMark from '../../images/NFL_logo.jpg';
+import nbaMark from '../../images/NBA.png';
 import portrait from '../assets/denver_me.jpeg';
 
 export { portrait };
@@ -168,6 +170,8 @@ export const projects = [
       'A widely-starred toolkit for gathering and modeling NFL data — finding structure in a noisy sport.',
     technologies: ['Python', 'scikit-learn', 'Selenium'],
     github_url: 'https://github.com/jakesanghavi/NFL_Stats',
+    image_url: nflMark,
+    tone: 'field',
     featured: false,
   },
   {
@@ -179,6 +183,8 @@ export const projects = [
       'An involved NBA scraping and analysis toolkit focused on clean datasets for downstream modeling.',
     technologies: ['Python', 'scikit-learn', 'Selenium'],
     github_url: 'https://github.com/jakesanghavi/NBA_Stats',
+    image_url: nbaMark,
+    tone: 'ink',
     featured: false,
   },
 ];
