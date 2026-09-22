@@ -1,0 +1,232 @@
+import tavernLogo from '../assets/tavern_logo.png';
+import roamioLogo from '../assets/roamio_logo.png';
+import nflMark from '../../images/NFL_logo.jpg';
+import nbaMark from '../../images/NBA.png';
+import portrait from '../assets/denver_me.jpeg';
+import attLogo from '../assets/logos/att.svg';
+import ugaLogo from '../assets/logos/uga.svg';
+import kraftLogo from '../assets/logos/kraft.svg';
+import thermoLogo from '../assets/logos/thermo.svg';
+import embryLogo from '../assets/logos/embryriddle.svg';
+import patriotsLogo from '../assets/logos/patriots.svg';
+import gatechLogo from '../assets/logos/gatech.svg';
+import cwruLogo from '../assets/logos/cwru.svg';
+
+// How much of the right-hand color is mixed into the light end of a card.
+// 0 is white. Higher values tint that end toward the right-hand color.
+const gradientEase = 18;
+
+// Light tint on the text side, the mark's color on the other.
+// UGA and the Patriots are near-black at primary, so those cards use red.
+// Kraft is only black and white, so the dark half stays black.
+const wash = (color) => {
+  const start = `color-mix(in srgb, ${color} ${gradientEase}%, white)`;
+  return `linear-gradient(100deg, ${start} 0%, ${start} 62%, ${color} 100%)`;
+};
+
+const brands = {
+  att: { logo: attLogo, background: wash('#00A8E0') },
+  uga: { logo: ugaLogo, background: wash('#BA0C2F') },
+  kraft: { logo: kraftLogo, background: wash('#1A1A1A') },
+  thermo: { logo: thermoLogo, background: wash('#EF4135') },
+  embry: { logo: embryLogo, background: wash('#00529C') },
+  patriots: { logo: patriotsLogo, background: wash('#C60C30') },
+  gatech: { logo: gatechLogo, background: wash('#AA985D') },
+  cwru: { logo: cwruLogo, background: wash('#003071') },
+};
+
+export { portrait };
+
+// Base64-obfuscated email, kept from the previous site.
+export const ENCODED_EMAIL = 'amFrZS5zYW5naGF2aUBnbWFpbC5jb20=';
+export const FORMSPREE_ID = 'xwpqabby';
+
+export const profile = {
+  name: 'Jake Sanghavi',
+  role: 'Solutions Designer',
+  location: 'Atlanta',
+  // A short, personal introduction for the opening screen.
+  summary:
+    'Data scientist and software engineer working on production ML and generative AI, from NLP and forecasting to the data systems behind them. Outside of work, I spend my time on astrophysics and sports analytics.',
+  socials: [
+    { label: 'GitHub', href: 'https://github.com/jakesanghavi' },
+    { label: 'LinkedIn', href: 'https://linkedin.com/in/jake-sanghavi' },
+    { label: 'X', href: 'https://x.com/jakesanghavi' },
+  ],
+};
+
+export const nav = [
+  { id: 'work', label: 'Work' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'contact', label: 'Contact' },
+];
+
+// A compact professional summary that leads the experience section.
+export const resumeSummary =
+  'Data scientist working across NLP, forecasting, and data engineering in telecom and finance, with experience in GenAI, computer vision, and predictive analytics.';
+
+// Experience — most recent first. Each summary condensed to one line.
+export const experience = [
+  {
+    year: '2024',
+    role: 'Data Scientist',
+    org: 'AT&T',
+    period: '2024 — present',
+    location: 'Atlanta, GA',
+    summary:
+      'Cash-flow forecasting in Prophet (<1.5% error) and PySpark billing platforms for 200M+ subscribers; earlier, NLP, computer vision, and RAG systems worth $15M+.',
+    current: true,
+    commitment: 'FULL-TIME',
+    ...brands.att,
+  },
+  {
+    year: '2025',
+    role: 'Astrophysics Researcher',
+    org: 'University of Georgia',
+    period: '2025 — present',
+    location: 'Athens, GA',
+    summary:
+      'Python simulations of exoplanet photosynthesis — modeling orbital dynamics and atmospheric composition to find worlds where it could be detectable from Earth.',
+    current: true,
+    commitment: 'PART-TIME',
+    ...brands.uga,
+  },
+  {
+    year: '2024',
+    role: 'Data Analyst Intern',
+    org: 'The Kraft Group',
+    period: '2024',
+    location: 'Foxboro, MA',
+    summary:
+      'Forecast game attendance to within 2%, cutting staffing and inventory costs by $10K+ per game.',
+    ...brands.kraft,
+  },
+  {
+    year: '2023',
+    role: 'Data Science Intern',
+    org: 'AT&T',
+    period: '2023',
+    location: 'Atlanta, GA',
+    summary:
+      'GPT-4 summarization workflows and complaint-prediction models mitigating an estimated $235M in risk.',
+    ...brands.att,
+  },
+  {
+    year: '2022',
+    role: 'Corporate Data Science Intern',
+    org: 'Thermo Fisher Scientific',
+    period: '2022',
+    location: 'Pittsburgh, PA',
+    summary: 'NLP and anomaly detection to flag disloyal customers and drive sales growth.',
+    ...brands.thermo,
+  },
+  {
+    year: '2021',
+    role: 'Astrophysics Research Intern',
+    org: 'Embry-Riddle Aeronautical University',
+    period: '2021',
+    location: 'Daytona Beach, FL',
+    summary:
+      'Measured stellar orbital periods with FFTs; optimized wavelet algorithms for up to 500× speedups.',
+    ...brands.embry,
+  },
+  {
+    year: '2019',
+    role: 'Data Analyst Intern',
+    org: 'The New England Patriots',
+    period: '2019 — 2020',
+    location: 'Foxboro, MA',
+    summary:
+      'Built statistical models and visualizations for the Patriots Hall of Fame “Dynasty” exhibit.',
+    ...brands.patriots,
+  },
+];
+
+export const education = [
+  {
+    degree: 'M.S. in Analytics — Computational Track',
+    org: 'Georgia Tech',
+    period: '2025 — 2026',
+    note: 'GPA 4.0',
+    ...brands.gatech,
+  },
+  {
+    degree: 'B.S. in Data Science & Analytics',
+    org: 'Case Western Reserve University',
+    period: '2020 — 2024',
+    note: 'Summa Cum Laude · GPA 4.0',
+    ...brands.cwru,
+  },
+];
+
+// Skills as two compact groups (not a logo wall).
+export const skills = [
+  {
+    group: 'Engineering',
+    items: ['Python', 'TypeScript', 'SQL', 'React', 'Next.js', 'Node', 'FastAPI', 'Databricks', 'Snowflake', 'Azure', 'Docker'],
+  },
+  {
+    group: 'ML / AI',
+    items: ['PyTorch', 'TensorFlow', 'scikit-learn', 'PySpark', 'LangChain / LangGraph', 'RAG', 'LLMs', 'OpenCV'],
+  },
+];
+
+// Projects — two featured, two compact. Facts preserved.
+export const projects = [
+  {
+    id: 1,
+    index: '01',
+    title: 'Cue Tavern',
+    tag: 'Live product',
+    year: '2024',
+    description:
+      'A social platform for the mobile game “CUE Cards,” now with 200+ active users. OAuth, community, and image-based card recognition via OCR.',
+    technologies: ['React', 'Node', 'Express', 'MongoDB', 'OCR'],
+    github_url: 'https://github.com/jakesanghavi/CUE_Social/tree/main',
+    live_url: 'https://cuetavern.com/',
+    image_url: tavernLogo,
+    tone: 'warm',
+    featured: true,
+  },
+  {
+    id: 2,
+    index: '02',
+    title: 'Roamio',
+    tag: 'Live product',
+    year: '2023',
+    description:
+      'An all-in-one trip planner for aspiring world travelers. Automatic itinerary generation, management, and social features.',
+    technologies: ['React', 'Firebase', 'Node', 'Express', 'Playwright'],
+    github_url: 'https://github.com/jakesanghavi/TravelPlanner',
+    live_url: 'https://roamio.earth/',
+    image_url: roamioLogo,
+    tone: 'cool',
+    featured: true,
+  },
+  {
+    id: 3,
+    index: '03',
+    title: 'NFL Stats',
+    tag: 'Sports analytics',
+    description:
+      'A publicly used toolkit for gathering and modeling NFL data, making sports analytics easier and more accessible for fans.',
+    technologies: ['Python', 'scikit-learn', 'Selenium'],
+    github_url: 'https://github.com/jakesanghavi/NFL_Stats',
+    image_url: nflMark,
+    tone: 'field',
+    featured: false,
+  },
+  {
+    id: 4,
+    index: '04',
+    title: 'NBA Stats',
+    tag: 'Sports analytics',
+    description:
+      'An involved NBA scraping and analysis toolkit focused on clean datasets for downstream modeling.',
+    technologies: ['Python', 'scikit-learn', 'Selenium'],
+    github_url: 'https://github.com/jakesanghavi/NBA_Stats',
+    image_url: nbaMark,
+    tone: 'ink',
+    featured: false,
+  },
+];
