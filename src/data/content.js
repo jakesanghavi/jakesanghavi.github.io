@@ -12,11 +12,17 @@ import patriotsLogo from '../assets/logos/patriots.svg';
 import gatechLogo from '../assets/logos/gatech.svg';
 import cwruLogo from '../assets/logos/cwru.svg';
 
-// White on the text side, the mark's color on the other.
+// How much of the right-hand color is mixed into the light end of a card.
+// 0 is white. Higher values tint that end toward the right-hand color.
+const gradientEase = 18;
+
+// Light tint on the text side, the mark's color on the other.
 // UGA and the Patriots are near-black at primary, so those cards use red.
 // Kraft is only black and white, so the dark half stays black.
-const wash = (color) =>
-  `linear-gradient(100deg, #ffffff 0%, #ffffff 62%, ${color} 100%)`;
+const wash = (color) => {
+  const start = `color-mix(in srgb, ${color} ${gradientEase}%, white)`;
+  return `linear-gradient(100deg, ${start} 0%, ${start} 62%, ${color} 100%)`;
+};
 
 const brands = {
   att: { logo: attLogo, background: wash('#00A8E0') },
