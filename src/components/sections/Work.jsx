@@ -26,21 +26,21 @@ function RoleCard({ e, i }) {
         background={e.background}
         className="h-full min-h-[15.5rem] p-6 md:p-7"
       >
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <span className="text-[0.72rem] tracking-[0.16em] uppercase text-muted md:whitespace-nowrap">{e.role}</span>
-            {e.commitment && (
-              <span className="mt-1.5 block text-[0.62rem] tracking-[0.18em] uppercase text-accent">
-                {e.commitment}
-              </span>
-            )}
+        <div>
+          <span className="text-[0.72rem] tracking-[0.16em] uppercase text-muted md:whitespace-nowrap">{e.role}</span>
+          {e.commitment && (
+            <span className="mt-1.5 block text-[0.62rem] tracking-[0.18em] uppercase text-accent">
+              {e.commitment}
+            </span>
+          )}
+          <p className="display mt-2 text-3xl leading-none text-ink/55">
+            {e.year}
             {e.current && (
-              <span className="mt-1.5 block text-[0.62rem] tracking-[0.16em] uppercase text-accent">
+              <span className="ml-2 align-middle text-[0.62rem] tracking-[0.16em] uppercase text-accent">
                 – present
               </span>
             )}
-          </div>
-          <span className="display shrink-0 text-right text-3xl leading-none text-ink/55">{e.year}</span>
+          </p>
         </div>
         <div className="mt-8">
           <h3 className="display text-[1.85rem] leading-none md:whitespace-nowrap md:text-[clamp(1rem,5.6cqw,1.75rem)]">{e.org}</h3>
