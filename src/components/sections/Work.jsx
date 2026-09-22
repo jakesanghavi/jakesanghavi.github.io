@@ -58,7 +58,7 @@ export default function Work() {
       <div className="max-w-[1500px] mx-auto px-6 md:px-14">
         <Reveal>
           <span className="eyebrow">Experience</span>
-          <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">{resumeSummary}</p>
+          {/* <p className="mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">{resumeSummary}</p> */}
         </Reveal>
 
         <ol className="mt-10 grid md:grid-cols-2 gap-4">

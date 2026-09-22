@@ -47,7 +47,7 @@ export const profile = {
   location: 'Atlanta',
   // A short, personal introduction for the opening screen.
   summary:
-    'Data scientist and engineer building production ML — NLP, forecasting, and the data platforms behind them. Off the clock, it’s astrophysics and sports analytics: the same hunt for structure hidden in noisy data.',
+    'Data scientist and software engineer working on production ML and generative AI, from NLP and forecasting to the data systems behind them. Outside of work, I spend my time on astrophysics and sports analytics.',
   socials: [
     { label: 'GitHub', href: 'https://github.com/jakesanghavi' },
     { label: 'LinkedIn', href: 'https://linkedin.com/in/jake-sanghavi' },
@@ -63,7 +63,7 @@ export const nav = [
 
 // A compact professional summary that leads the experience section.
 export const resumeSummary =
-  'ML / data science engineer building production NLP, forecasting, and data pipelines for telecom and finance — with measurable impact from GenAI, computer vision, and predictive analytics.';
+  'Data scientist working across NLP, forecasting, and data engineering in telecom and finance, with experience in GenAI, computer vision, and predictive analytics.';
 
 // Experience — most recent first. Each summary condensed to one line.
 export const experience = [
@@ -180,7 +180,7 @@ export const projects = [
     tag: 'Live product',
     year: '2024',
     description:
-      'A social platform for the mobile game “CUE Cards,” now with 200+ active users — accounts, OAuth, community, and image-based card recognition via OCR.',
+      'A social platform for the mobile game “CUE Cards,” now with 200+ active users. OAuth, community, and image-based card recognition via OCR.',
     technologies: ['React', 'Node', 'Express', 'MongoDB', 'OCR'],
     github_url: 'https://github.com/jakesanghavi/CUE_Social/tree/main',
     live_url: 'https://cuetavern.com/',
@@ -195,7 +195,7 @@ export const projects = [
     tag: 'Live product',
     year: '2023',
     description:
-      'An all-in-one trip planner for aspiring world travelers — itinerary building, discovery, and automated collection that keeps destination data fresh.',
+      'An all-in-one trip planner for aspiring world travelers. Automatic itinerary generation, management, and social features.',
     technologies: ['React', 'Firebase', 'Node', 'Express', 'Playwright'],
     github_url: 'https://github.com/jakesanghavi/TravelPlanner',
     live_url: 'https://roamio.earth/',
@@ -209,7 +209,7 @@ export const projects = [
     title: 'NFL Stats',
     tag: 'Sports analytics',
     description:
-      'A widely-starred toolkit for gathering and modeling NFL data — finding structure in a noisy sport.',
+      'A publicly used toolkit for gathering and modeling NFL data, making sports analytics easier and more accessible for fans.',
     technologies: ['Python', 'scikit-learn', 'Selenium'],
     github_url: 'https://github.com/jakesanghavi/NFL_Stats',
     image_url: nflMark,
