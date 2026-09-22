@@ -28,8 +28,7 @@ export default function Contact() {
           {/* invitation + details */}
           <Reveal className="md:col-span-5">
             <p className="text-xl leading-relaxed text-ink-soft max-w-[40ch]">
-              Open to roles, collaborations, or a good conversation — about data, software, or
-              the universe.
+              Open to new opportunities, collaborations, and related conversations.
             </p>
 
             <div className="mt-10 space-y-4">
