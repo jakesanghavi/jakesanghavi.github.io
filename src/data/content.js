@@ -3,6 +3,58 @@ import roamioLogo from '../assets/roamio_logo.png';
 import nflMark from '../../images/NFL_logo.jpg';
 import nbaMark from '../../images/NBA.png';
 import portrait from '../assets/denver_me.jpeg';
+import attLogo from '../assets/logos/att.svg';
+import ugaLogo from '../assets/logos/uga.svg';
+import kraftLogo from '../assets/logos/kraft.svg';
+import thermoLogo from '../assets/logos/thermo.svg';
+import embryLogo from '../assets/logos/embryriddle.svg';
+import patriotsLogo from '../assets/logos/patriots.svg';
+import gatechLogo from '../assets/logos/gatech.svg';
+import cwruLogo from '../assets/logos/cwru.svg';
+
+// Brand fields for employment and education cards. Colors come from each mark.
+const brands = {
+  att: {
+    logo: attLogo,
+    background:
+      'radial-gradient(80% 90% at 100% 40%, rgba(0,168,224,0.42), transparent 58%), linear-gradient(165deg, #0b3c56 0%, #071820 100%)',
+  },
+  uga: {
+    logo: ugaLogo,
+    background:
+      'radial-gradient(80% 90% at 100% 50%, rgba(186,12,47,0.5), transparent 58%), linear-gradient(165deg, #3a1018 0%, #14080b 100%)',
+  },
+  kraft: {
+    logo: kraftLogo,
+    background:
+      'radial-gradient(70% 80% at 100% 80%, rgba(255,255,255,0.08), transparent 55%), linear-gradient(165deg, #2a2a2a 0%, #111111 100%)',
+  },
+  thermo: {
+    logo: thermoLogo,
+    background:
+      'radial-gradient(80% 80% at 100% 30%, rgba(239,65,53,0.42), transparent 56%), linear-gradient(165deg, #3a1614 0%, #140c0c 100%)',
+  },
+  embry: {
+    logo: embryLogo,
+    background:
+      'radial-gradient(85% 80% at 100% 40%, rgba(0,82,156,0.55), transparent 58%), linear-gradient(165deg, #0c2f52 0%, #081420 100%)',
+  },
+  patriots: {
+    logo: patriotsLogo,
+    background:
+      'radial-gradient(80% 80% at 100% 70%, rgba(198,12,48,0.4), transparent 55%), linear-gradient(165deg, #0d2244 0%, #081018 100%)',
+  },
+  gatech: {
+    logo: gatechLogo,
+    background:
+      'radial-gradient(80% 80% at 100% 40%, rgba(170,152,93,0.45), transparent 56%), linear-gradient(165deg, #1a2740 0%, #0c1422 100%)',
+  },
+  cwru: {
+    logo: cwruLogo,
+    background:
+      'radial-gradient(80% 80% at 100% 40%, rgba(0,82,160,0.45), transparent 56%), linear-gradient(165deg, #0c2748 0%, #081018 100%)',
+  },
+};
 
 export { portrait };
 
@@ -45,6 +97,8 @@ export const experience = [
     summary:
       'Cash-flow forecasting in Prophet (<1.5% error) and PySpark billing platforms for 200M+ subscribers; earlier, NLP, computer vision, and RAG systems worth $15M+.',
     current: true,
+    commitment: 'FULL-TIME',
+    ...brands.att,
   },
   {
     year: '2025',
@@ -55,6 +109,8 @@ export const experience = [
     summary:
       'Python simulations of exoplanet photosynthesis — modeling orbital dynamics and atmospheric composition to find worlds where it could be detectable from Earth.',
     current: true,
+    commitment: 'PART-TIME',
+    ...brands.uga,
   },
   {
     year: '2024',
@@ -64,6 +120,7 @@ export const experience = [
     location: 'Foxboro, MA',
     summary:
       'Forecast game attendance to within 2%, cutting staffing and inventory costs by $10K+ per game.',
+    ...brands.kraft,
   },
   {
     year: '2023',
@@ -73,6 +130,7 @@ export const experience = [
     location: 'Atlanta, GA',
     summary:
       'GPT-4 summarization workflows and complaint-prediction models mitigating an estimated $235M in risk.',
+    ...brands.att,
   },
   {
     year: '2022',
@@ -81,6 +139,7 @@ export const experience = [
     period: '2022',
     location: 'Pittsburgh, PA',
     summary: 'NLP and anomaly detection to flag disloyal customers and drive sales growth.',
+    ...brands.thermo,
   },
   {
     year: '2021',
@@ -90,6 +149,7 @@ export const experience = [
     location: 'Daytona Beach, FL',
     summary:
       'Measured stellar orbital periods with FFTs; optimized wavelet algorithms for up to 500× speedups.',
+    ...brands.embry,
   },
   {
     year: '2019',
@@ -99,6 +159,7 @@ export const experience = [
     location: 'Foxboro, MA',
     summary:
       'Built statistical models and visualizations for the Patriots Hall of Fame “Dynasty” exhibit.',
+    ...brands.patriots,
   },
 ];
 
@@ -108,12 +169,14 @@ export const education = [
     org: 'Georgia Tech',
     period: '2025 — 2026',
     note: 'GPA 4.0',
+    ...brands.gatech,
   },
   {
     degree: 'B.S. in Data Science & Analytics',
     org: 'Case Western Reserve University',
     period: '2020 — 2024',
     note: 'Summa Cum Laude · GPA 4.0',
+    ...brands.cwru,
   },
 ];
 
